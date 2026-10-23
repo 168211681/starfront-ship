@@ -177,15 +177,77 @@ export interface PerSecondTelemetrySample {
   orientation: 'portrait' | 'landscape';
 }
 
+export interface DeviceMetrics {
+  userAgent: string;
+  language: string;
+  devicePixelRatio: number;
+  screenWidth: number;
+  screenHeight: number;
+  innerWidth: number;
+  innerHeight: number;
+  hardwareConcurrency: number;
+  maxTouchPoints: number;
+}
+
+/** Documented browser-side method. Not a vendor 1% low and not a GPU timestamp query. */
+export interface FpsMeasurementMethod {
+  sampleSource: string;
+  ringFrames: number;
+  averageFps: string;
+  approx1PercentLowFps: string;
+  browserFrameTime: string;
+  cpuRenderSubmissionTime: string;
+  notMeasured: string[];
+}
+
+export type TelemetrySessionEvent =
+  | {
+      kind: 'viewport-resize';
+      timestampIso: string;
+      perfMs: number;
+      cssWidth: number;
+      cssHeight: number;
+      applied: boolean;
+      reason: string;
+      devicePixelRatio: number;
+      drawingBufferWidth: number;
+      drawingBufferHeight: number;
+    }
+  | {
+      kind: 'visibility';
+      timestampIso: string;
+      perfMs: number;
+      visibilityState: DocumentVisibilityState;
+      hidden: boolean;
+    }
+  | {
+      kind: 'graphics-preset';
+      timestampIso: string;
+      perfMs: number;
+      preset: QualityPreset;
+      devicePixelRatio: number;
+      rendererPixelRatio: number;
+    }
+  | {
+      kind: 'webgl-context-loss';
+      timestampIso: string;
+      perfMs: number;
+      count: number;
+    };
+
 export interface TelemetryReportExport {
-  schemaVersion: 'starfront-3d-r2.1-telemetry-v1';
-  measurementNote: 'Browser requestAnimationFrame frame-to-frame deltas and CPU-side WebGL render submission times. Not hardware GPU timer queries or native ProcessInfo.ThermalState.';
+  schemaVersion: 'starfront-3d-r2.2-telemetry-v1';
+  measurementNote: string;
+  measurementMethod: FpsMeasurementMethod;
+  device: DeviceMetrics;
   recordingStartedAt: string;
   recordingStoppedAt: string;
   durationSeconds: number;
   sampleCount: number;
   /** @deprecated Preserved for backward compatibility with R2.0 telemetry schema consumers */
   samplesCount: number;
+  /** Individual requestAnimationFrame deltas, oldest first, capped at the ring size. */
+  recentFrameDeltasMs: number[];
   summary: {
     overallAvgFps: number;
     min1PercentLowFps: number;
@@ -196,6 +258,7 @@ export interface TelemetryReportExport {
     totalWebglContextLosses: number;
   };
   samples: PerSecondTelemetrySample[];
+  events: TelemetrySessionEvent[];
 }
 
 let isRecordingTelemetry = false;
@@ -203,7 +266,87 @@ let recordingStartIso = '';
 let recordingStartPerfMs = 0;
 let lastSamplePerfMs = 0;
 let recordedSamples: PerSecondTelemetrySample[] = [];
-let diagHudVisible = true;
+let diagHudVisible = false;
+
+const MAX_TELEMETRY_EVENTS = 240;
+const sessionEvents: TelemetrySessionEvent[] = [];
+
+const FPS_MEASUREMENT_METHOD: FpsMeasurementMethod = {
+  sampleSource:
+    'Individual requestAnimationFrame deltas from performance.now() between callbacks. A fixed ring of 240 deltas is kept.',
+  ringFrames: RING_SIZE,
+  averageFps: '1000 divided by the arithmetic mean of the rAF deltas in the ring.',
+  approx1PercentLowFps:
+    '1000 divided by the p99 rAF delta. Deltas are sorted ascending; the index is min(n-1, floor(n * 0.99)). This is an approximate browser-side 1% low, not PresentMon and not a GPU timestamp.',
+  browserFrameTime:
+    'The rAF delta itself (simulation, scene sync, submission, and time until the next callback). It is not GPU execution time.',
+  cpuRenderSubmissionTime:
+    'performance.now() wrapped only around renderer.render(). That is CPU-side submission time, not GPU execution time.',
+  notMeasured: [
+    'native thermal state',
+    'GPU execution time',
+    'EXT_disjoint_timer_query',
+    'ProcessInfo.ThermalState'
+  ]
+};
+
+function readDeviceMetrics(): DeviceMetrics {
+  return {
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+    language: typeof navigator !== 'undefined' ? navigator.language : '',
+    devicePixelRatio: Number((window.devicePixelRatio || 1).toFixed(2)),
+    screenWidth: window.screen?.width ?? 0,
+    screenHeight: window.screen?.height ?? 0,
+    innerWidth: window.innerWidth,
+    innerHeight: window.innerHeight,
+    hardwareConcurrency: typeof navigator !== 'undefined' ? navigator.hardwareConcurrency || 0 : 0,
+    maxTouchPoints: typeof navigator !== 'undefined' ? navigator.maxTouchPoints || 0 : 0
+  };
+}
+
+function pushSessionEvent(event: TelemetrySessionEvent): void {
+  sessionEvents.push(event);
+  if (sessionEvents.length > MAX_TELEMETRY_EVENTS) sessionEvents.shift();
+}
+
+function recentFrameDeltasMs(): number[] {
+  const out: number[] = [];
+  if (ringCount === 0) return out;
+  if (ringCount < RING_SIZE) {
+    for (let i = 0; i < ringCount; i++) out.push(Number(frameDeltaRing[i].toFixed(2)));
+    return out;
+  }
+  for (let i = 0; i < RING_SIZE; i++) {
+    out.push(Number(frameDeltaRing[(ringIdx + i) % RING_SIZE].toFixed(2)));
+  }
+  return out;
+}
+
+const PRESET_SHORT: Record<QualityPreset, string> = {
+  eco: 'ECO',
+  balanced: 'BAL',
+  quality: 'QUAL'
+};
+
+function setDiagHudVisible(visible: boolean): void {
+  diagHudVisible = visible;
+  const panel = document.getElementById('diagHudPanel');
+  const btn = document.getElementById('btnToggleDiagHud');
+  if (panel) {
+    panel.style.display = visible ? 'block' : 'none';
+    if (typeof panel.setAttribute === 'function') {
+      panel.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    }
+  }
+  if (btn) {
+    btn.classList.toggle('active-btn', visible);
+    if (typeof btn.setAttribute === 'function') {
+      btn.setAttribute('aria-expanded', visible ? 'true' : 'false');
+    }
+    btn.textContent = visible ? 'Hide' : 'Diag';
+  }
+  if (visible) updateDiagnosticHUD(buildCurrentTelemetrySample(performance.now()));
+}
 
 function recordFrameDelta(dtMs: number): void {
   if (dtMs <= 0 || dtMs > 1000) return;
@@ -297,10 +440,10 @@ function updateDiagnosticHUD(sample: PerSecondTelemetrySample): void {
     const elDrawTop = document.getElementById('hudDrawCalls');
     const elFpsTop = document.getElementById('hudFps');
     if (elDrawTop) {
-      elDrawTop.textContent = `${sample.drawCalls} draws (${sample.instancedDrawCalls} inst) • ${(sample.renderedTriangles / 1000).toFixed(1)}k tris`;
+      elDrawTop.textContent = `${sample.drawCalls} (${sample.instancedDrawCalls} inst)`;
     }
     if (elFpsTop) {
-      elFpsTop.textContent = `${Math.round(sample.fpsRollingAvg)} FPS (${sample.browserFrameTimeAvgMs.toFixed(1)}ms)`;
+      elFpsTop.textContent = `${Math.round(sample.fpsRollingAvg)}`;
     }
 
     if (!diagHudVisible) return;
@@ -313,6 +456,7 @@ function updateDiagnosticHUD(sample: PerSecondTelemetrySample): void {
     setTxt('diagFpsAvg', `${sample.fpsRollingAvg.toFixed(1)}`);
     setTxt('diagFps1Low', `${sample.fpsApprox1PercentLow.toFixed(1)}`);
     setTxt('diagFrameTime', `${sample.browserFrameTimeAvgMs.toFixed(1)} / ${sample.browserFrameTimeP95Ms.toFixed(1)} ms`);
+    setTxt('diagCpuRender', `${sample.cpuRenderCallAvgMs.toFixed(2)} ms`);
     setTxt('diagDrawCalls', `${sample.drawCalls} (${sample.instancedDrawCalls} inst)`);
     setTxt('diagTriangles', sample.renderedTriangles.toLocaleString());
     setTxt('diagUnits', `${sample.activeUnitCount}`);
@@ -351,7 +495,7 @@ function startTelemetryRecording(): void {
     const btnStart = document.getElementById('btnDiagStartRec') as HTMLButtonElement | null;
     const btnStop = document.getElementById('btnDiagStopExport') as HTMLButtonElement | null;
     if (btnStart) {
-      btnStart.textContent = '● RECORDING...';
+      btnStart.textContent = 'Recording';
       btnStart.classList.add('recording');
       btnStart.disabled = true;
     }
@@ -376,7 +520,7 @@ function stopAndExportTelemetryReport(): TelemetryReportExport {
     const btnStart = document.getElementById('btnDiagStartRec') as HTMLButtonElement | null;
     const btnStop = document.getElementById('btnDiagStopExport') as HTMLButtonElement | null;
     if (btnStart) {
-      btnStart.textContent = '⏺ START RECORDING';
+      btnStart.textContent = 'Start';
       btnStart.classList.remove('recording');
       btnStart.disabled = false;
     }
@@ -395,14 +539,17 @@ function stopAndExportTelemetryReport(): TelemetryReportExport {
   const maxCtxLoss = Math.max(...samples.map((s) => s.webglContextLossCount));
 
   const report: TelemetryReportExport = {
-    schemaVersion: 'starfront-3d-r2.1-telemetry-v1',
+    schemaVersion: 'starfront-3d-r2.2-telemetry-v1',
     measurementNote:
-      'Browser requestAnimationFrame frame-to-frame deltas and CPU-side WebGL render submission times. Not hardware GPU timer queries or native ProcessInfo.ThermalState.',
+      'Browser requestAnimationFrame frame-to-frame deltas and CPU-side WebGL render submission times. browserFrameTime* is the rAF delta. cpuRenderCallAvgMs is renderer.render() submission only. Not hardware GPU timer queries or native thermal state.',
+    measurementMethod: FPS_MEASUREMENT_METHOD,
+    device: readDeviceMetrics(),
     recordingStartedAt: recordingStartIso || stopIso,
     recordingStoppedAt: stopIso,
     durationSeconds: Number(((stopPerfMs - (recordingStartPerfMs || stopPerfMs)) / 1000).toFixed(2)),
     sampleCount: samples.length,
     samplesCount: samples.length,
+    recentFrameDeltasMs: recentFrameDeltasMs(),
     summary: {
       overallAvgFps: Number(avgFps.toFixed(1)),
       min1PercentLowFps: Number(min1Low.toFixed(1)),
@@ -412,7 +559,8 @@ function stopAndExportTelemetryReport(): TelemetryReportExport {
       peakActiveUnits: peakUnits,
       totalWebglContextLosses: maxCtxLoss
     },
-    samples
+    samples,
+    events: sessionEvents.slice()
   };
 
   (window as any).__STARFRONT_LAST_TELEMETRY_EXPORT__ = report;
@@ -441,13 +589,17 @@ function stopAndExportTelemetryReport(): TelemetryReportExport {
 runHudSafe('bindHudControls', () => {
   document.getElementById('btnToggleDiagHud')?.addEventListener('click', () => {
     runHudSafe('btnToggleDiagHud', () => {
-      diagHudVisible = !diagHudVisible;
-      const panel = document.getElementById('diagHudPanel');
-      const btn = document.getElementById('btnToggleDiagHud');
-      if (panel) panel.style.display = diagHudVisible ? 'block' : 'none';
-      if (btn) btn.classList.toggle('active-btn', diagHudVisible);
+      setDiagHudVisible(!diagHudVisible);
     });
   });
+
+  document.getElementById('btnDiagClose')?.addEventListener('click', () => {
+    runHudSafe('btnDiagClose', () => {
+      setDiagHudVisible(false);
+    });
+  });
+
+  setDiagHudVisible(false);
 
   document.getElementById('btnDiagStartRec')?.addEventListener('click', () => {
     startTelemetryRecording();
@@ -565,14 +717,22 @@ runHudSafe('bindHudControls', () => {
     const next = order[(order.indexOf(scene3d.getQualityPreset()) + 1) % order.length];
     scene3d.setQualityPreset(next);
     const el = document.getElementById('btnQualityPreset');
-    if (el) el.textContent = `⚙️ ${next.toUpperCase()}`;
-    setStatusMessage(`Graphics Quality Preset: ${next.toUpperCase()}`);
+    if (el) el.textContent = PRESET_SHORT[next];
+    pushSessionEvent({
+      kind: 'graphics-preset',
+      timestampIso: new Date().toISOString(),
+      perfMs: Math.round(performance.now()),
+      preset: next,
+      devicePixelRatio: Number((window.devicePixelRatio || 1).toFixed(2)),
+      rendererPixelRatio: Number((scene3d.renderer.getPixelRatio ? scene3d.renderer.getPixelRatio() : 1).toFixed(2))
+    });
+    setStatusMessage(`Graphics preset: ${next.toUpperCase()}`);
   });
 
   document.getElementById('btnPauseGame')?.addEventListener('click', () => {
     core.state.tacticalPause = !core.state.tacticalPause;
     const el = document.getElementById('btnPauseGame');
-    if (el) el.textContent = core.state.tacticalPause ? '▶️ RESUME' : '⏸️ PAUSE';
+    if (el) el.textContent = core.state.tacticalPause ? 'Play' : 'Pause';
     setStatusMessage(core.state.tacticalPause ? 'Tactical Pause Active' : 'Simulation Resumed');
   });
 
@@ -583,7 +743,82 @@ runHudSafe('bindHudControls', () => {
   });
 });
 
-window.addEventListener('resize', () => scene3d.handleResize());
+scene3d.onContextLost = (info) => {
+  pushSessionEvent({
+    kind: 'webgl-context-loss',
+    timestampIso: info.timestampIso,
+    perfMs: Math.round(performance.now()),
+    count: info.count
+  });
+};
+
+scene3d.onViewportDecision = (info) => {
+  const canvas = scene3d.renderer.domElement;
+  pushSessionEvent({
+    kind: 'viewport-resize',
+    timestampIso: new Date().toISOString(),
+    perfMs: Math.round(performance.now()),
+    cssWidth: info.cssWidth,
+    cssHeight: info.cssHeight,
+    applied: info.applied,
+    reason: info.reason,
+    devicePixelRatio: Number((window.devicePixelRatio || 1).toFixed(2)),
+    drawingBufferWidth: canvas?.width || 0,
+    drawingBufferHeight: canvas?.height || 0
+  });
+};
+
+function onViewportSignal(): void {
+  scene3d.handleResize();
+}
+
+window.addEventListener('resize', onViewportSignal);
+if (window.visualViewport && typeof window.visualViewport.addEventListener === 'function') {
+  window.visualViewport.addEventListener('resize', onViewportSignal);
+}
+if (typeof document.addEventListener === 'function') {
+  document.addEventListener('visibilitychange', () => {
+    pushSessionEvent({
+      kind: 'visibility',
+      timestampIso: new Date().toISOString(),
+      perfMs: Math.round(performance.now()),
+      visibilityState: document.visibilityState,
+      hidden: document.hidden
+    });
+  });
+}
+if (typeof ResizeObserver !== 'undefined') {
+  const viewportObserver = new ResizeObserver(() => onViewportSignal());
+  viewportObserver.observe(viewportEl);
+}
+
+pushSessionEvent({
+  kind: 'graphics-preset',
+  timestampIso: new Date().toISOString(),
+  perfMs: Math.round(performance.now()),
+  preset: scene3d.getQualityPreset(),
+  devicePixelRatio: Number((window.devicePixelRatio || 1).toFixed(2)),
+  rendererPixelRatio: Number((scene3d.renderer.getPixelRatio ? scene3d.renderer.getPixelRatio() : 1).toFixed(2))
+});
+pushSessionEvent({
+  kind: 'visibility',
+  timestampIso: new Date().toISOString(),
+  perfMs: Math.round(performance.now()),
+  visibilityState: document.visibilityState,
+  hidden: document.hidden
+});
+pushSessionEvent({
+  kind: 'viewport-resize',
+  timestampIso: new Date().toISOString(),
+  perfMs: Math.round(performance.now()),
+  cssWidth: Math.round(viewportEl.clientWidth),
+  cssHeight: Math.round(viewportEl.clientHeight),
+  applied: true,
+  reason: 'initial',
+  devicePixelRatio: Number((window.devicePixelRatio || 1).toFixed(2)),
+  drawingBufferWidth: scene3d.renderer.domElement?.width || 0,
+  drawingBufferHeight: scene3d.renderer.domElement?.height || 0
+});
 
 // Main Loop with Lightweight Telemetry & Diagnostic HUD
 let lastFrameTime = performance.now();
@@ -641,6 +876,11 @@ const appHarness = {
   startTelemetryRecording,
   stopAndExportTelemetryReport,
   getLastTelemetryReport: () => (window as any).__STARFRONT_LAST_TELEMETRY_EXPORT__,
+  getSessionTelemetry: () => ({
+    events: sessionEvents.slice(),
+    measurementMethod: FPS_MEASUREMENT_METHOD,
+    device: readDeviceMetrics()
+  }),
   getHudHealth: () => ({
     ok: hudErrors.length === 0,
     errorCount: hudErrors.length,

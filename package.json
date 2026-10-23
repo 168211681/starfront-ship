@@ -1,6 +1,6 @@
 {
   "name": "starfront-3d-vertical-slice",
-  "version": "0.1.3-r2.1",
+  "version": "0.1.4-r2.2",
   "private": true,
   "type": "module",
   "description": "STARFRONT: Pocket Command 3D — Vertical Slice 001 (Three.js + WebGL2 + Deterministic RTS Core)",

@@ -117,6 +117,10 @@ export class BattlefieldScene3D {
       (e) => {
         e.preventDefault();
         this.contextLossCount++;
+        this.onContextLost?.({
+          timestampIso: new Date().toISOString(),
+          count: this.contextLossCount
+        });
       },
       false
     );
@@ -214,6 +218,17 @@ export class BattlefieldScene3D {
     this.scene.add(this.dirLight);
   }
 
+  /** Fired when WebGL context is lost. Does not read native thermal state. */
+  public onContextLost: ((info: { timestampIso: string; count: number }) => void) | null = null;
+
+  /** Fired for every resize decision, including Safari chrome changes that do not reallocate the buffer. */
+  public onViewportDecision:
+    | ((info: { cssWidth: number; cssHeight: number; applied: boolean; reason: string }) => void)
+    | null = null;
+
+  private appliedCssW = 0;
+  private appliedCssH = 0;
+
   public setQualityPreset(preset: 'eco' | 'balanced' | 'quality'): void {
     this.qualityPreset = preset;
     const rawDpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
@@ -232,7 +247,7 @@ export class BattlefieldScene3D {
       this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       this.dirLight.castShadow = true;
     }
-    this.handleResize();
+    this.handleResize(true);
   }
 
   public getQualityPreset(): 'eco' | 'balanced' | 'quality' {
@@ -844,10 +859,27 @@ export class BattlefieldScene3D {
     };
   }
 
-  public handleResize(): void {
-    const w = Math.max(300, this.container.clientWidth);
-    const h = Math.max(200, this.container.clientHeight);
-    const aspect = w / h;
+  public handleResize(force = false): void {
+    const w = Math.max(1, Math.round(this.container.clientWidth));
+    const h = Math.max(1, Math.round(this.container.clientHeight));
+    const dw = Math.abs(w - this.appliedCssW);
+    const dh = Math.abs(h - this.appliedCssH);
+    // iPhone Safari chrome can shrink visual height by ~12px (observed 566 → 554)
+    // without a real orientation change. Reallocating the drawing buffer on that
+    // hitch drops frame time. Ignore height-only micro changes; still report them.
+    const safariChromeMicro = this.appliedCssW > 0 && dw < 2 && dh > 0 && dh < 24;
+    if (!force && safariChromeMicro) {
+      this.onViewportDecision?.({
+        cssWidth: w,
+        cssHeight: h,
+        applied: false,
+        reason: 'ignored-safari-chrome-micro-resize'
+      });
+      return;
+    }
+    if (!force && dw === 0 && dh === 0) return;
+
+    const aspect = w / Math.max(1, h);
     this.camera.left = (-this.frustumSize * aspect) / 2;
     this.camera.right = (this.frustumSize * aspect) / 2;
     this.camera.top = this.frustumSize / 2;
@@ -855,6 +887,14 @@ export class BattlefieldScene3D {
     this.camera.zoom = this.cameraZoom;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h, false);
+    this.appliedCssW = w;
+    this.appliedCssH = h;
+    this.onViewportDecision?.({
+      cssWidth: w,
+      cssHeight: h,
+      applied: true,
+      reason: force ? 'forced' : 'layout-change'
+    });
   }
 
   public render(): void {

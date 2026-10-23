@@ -28,12 +28,32 @@ const runCore = runAll || args.has('--core');
 const runShim = runAll || args.has('--shim');
 const runOffline = runAll || args.has('--offline');
 
+function newestSourceMtime(dir) {
+  let max = 0;
+  for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, ent.name);
+    if (ent.isDirectory()) {
+      max = Math.max(max, newestSourceMtime(full));
+    } else if (/\.(ts|js|mjs)$/.test(ent.name)) {
+      max = Math.max(max, fs.statSync(full).mtimeMs);
+    }
+  }
+  return max;
+}
+
 function ensureCoreBundle() {
   const coreBundlePath = path.join(ROOT, 'dist', 'core-bundle.mjs');
   const slicePath = path.join(ROOT, 'dist', 'starfront-3d-slice.js');
   const needCore = runCore && !fs.existsSync(coreBundlePath);
   const needSlice = runOffline && !fs.existsSync(slicePath);
-  if (!needCore && !needSlice) return;
+  const srcNewest = newestSourceMtime(path.join(ROOT, 'src'));
+  const builderMtime = fs.statSync(path.join(ROOT, 'scripts', 'build-standalone.mjs')).mtimeMs;
+  const artifactMtime = Math.min(
+    fs.existsSync(slicePath) ? fs.statSync(slicePath).mtimeMs : 0,
+    fs.existsSync(coreBundlePath) ? fs.statSync(coreBundlePath).mtimeMs : 0
+  );
+  const stale = srcNewest > artifactMtime || builderMtime > artifactMtime;
+  if (!needCore && !needSlice && !stale) return;
   console.log('[tests] Building offline standalone / core-bundle via scripts/build-standalone.mjs …');
   const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts', 'build-standalone.mjs')], {
     cwd: ROOT,

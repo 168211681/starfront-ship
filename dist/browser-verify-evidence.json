@@ -8,14 +8,16 @@
   "consoleLogs": [],
   "networkRequests": [
     "http://starfront.local:19082/index.html",
-    "http://starfront.local:19082/assets/index-CRaObtLs.js",
-    "http://starfront.local:19082/assets/main-dyn5KY9H.js"
+    "http://starfront.local:19082/assets/index-CJ5DEaId.js",
+    "http://starfront.local:19082/assets/main-DaXva-hg.js"
   ],
   "externalNetworkRequests": [],
   "screenshots": {
     "desktop": "artifacts/screenshots/desktop-battlefield.png",
     "mobile": "artifacts/screenshots/mobile-battlefield.png",
-    "iphoneDiagnosticHud": "artifacts/screenshots/iphone-diagnostic-hud.png"
+    "iphoneDiagnosticHud": "artifacts/screenshots/iphone-diagnostic-hud.png",
+    "portrait402": "artifacts/screenshots/portrait-402.png",
+    "landscapeIphone": "artifacts/screenshots/landscape-iphone.png"
   },
   "desktopCheck": {
     "ok": true,
@@ -32,14 +34,14 @@
     "glRenderer": "WebKit WebGL",
     "canvasCssSize": {
       "w": 1440,
-      "h": 812
+      "h": 738
     },
     "canvasBufferSize": {
       "w": 1440,
-      "h": 812
+      "h": 738
     },
-    "nonBgSampledPixels": 14564,
-    "distinctColorBuckets": 151,
+    "nonBgSampledPixels": 12688,
+    "distinctColorBuckets": 158,
     "unitCount": 26,
     "playerUnits": 10,
     "enemyUnits": 8,
@@ -47,17 +49,17 @@
     "buildingCount": 12,
     "outpostCount": 1,
     "renderInfo": {
-      "frame": 14,
+      "frame": 15,
       "calls": 30,
       "instancedCalls": 28,
-      "activeInstances": 320,
+      "activeInstances": 327,
       "activeInstancedMeshes": 28,
       "visibleInstancedMeshes": 29,
       "triangles": 8904,
       "lines": 50,
       "geometries": 10,
       "frameTimeMs": 0.4,
-      "avgFrameTimeMs": 22.835,
+      "avgFrameTimeMs": 56.174,
       "contextLossCount": 0
     }
   },
@@ -69,7 +71,7 @@
       "errors": []
     },
     "fields": {
-      "gdp": "632",
+      "gdp": "633",
       "gdpRate": "+14/s",
       "supply": "15/38",
       "power": "13/30",
@@ -93,56 +95,135 @@
     "cameraZoomWorked": true,
     "frameTimingStats": {
       "framesSampled": 60,
-      "avgFrameMs": 0.682,
+      "avgFrameMs": 0.633,
       "p50FrameMs": 0.5,
-      "p95FrameMs": 2.4,
-      "maxFrameMs": 4.2,
-      "headlessSwiftShaderFps": 1467
+      "p95FrameMs": 2.2,
+      "maxFrameMs": 3.2,
+      "headlessSwiftShaderFps": 1578.9
     },
     "combatRenderStats": {
-      "frame": 76,
+      "frame": 78,
       "calls": 30,
       "instancedCalls": 29,
-      "activeInstances": 295,
+      "activeInstances": 294,
       "activeInstancedMeshes": 29,
       "visibleInstancedMeshes": 29,
       "triangles": 6992,
       "lines": 50,
       "geometries": 10,
-      "frameTimeMs": 0.2,
-      "avgFrameTimeMs": 0.516,
+      "frameTimeMs": 0.3,
+      "avgFrameTimeMs": 0.364,
       "contextLossCount": 0
     }
   },
   "mobileCheck": {
     "mobileCanvasCss": {
       "w": 390,
-      "h": 756
+      "h": 682
     },
     "mobileBufferSize": {
       "w": 390,
-      "h": 756
+      "h": 682
     },
     "zoomBefore": 1.05,
     "zoomAfter": 2.1,
     "pinchZoomWorked": true
   },
+  "portraitCheck": {
+    "vw": 402,
+    "vh": 566,
+    "scrollWidth": 402,
+    "clientWidth": 402,
+    "overflowX": false,
+    "battlefieldRatio": 0.714,
+    "viewportCss": {
+      "w": 402,
+      "h": 404
+    },
+    "clipped": [],
+    "toastHits": [],
+    "diagDisplay": "none",
+    "canvasCount": 1,
+    "sameCanvas": true,
+    "contextLost": false,
+    "threeRevision": "160",
+    "isCustomShim": false
+  },
+  "diagToggleCheck": {
+    "startedCollapsed": true,
+    "expanded": true,
+    "expandedShotReady": true,
+    "collapsedAgain": true
+  },
+  "resizeBefore": {
+    "cssW": 402,
+    "cssH": 404,
+    "bufW": 402,
+    "bufH": 404,
+    "contextLost": false
+  },
+  "resizeAfter": {
+    "cssW": 402,
+    "cssH": 392,
+    "bufW": 402,
+    "bufH": 404,
+    "contextLost": false,
+    "canvasCount": 1,
+    "lastResize": {
+      "kind": "viewport-resize",
+      "timestampIso": "2026-10-23T13:46:02.954Z",
+      "perfMs": 3940,
+      "cssWidth": 402,
+      "cssHeight": 392,
+      "applied": false,
+      "reason": "ignored-safari-chrome-micro-resize",
+      "devicePixelRatio": 2,
+      "drawingBufferWidth": 402,
+      "drawingBufferHeight": 404
+    }
+  },
+  "landscapeCheck": {
+    "vw": 844,
+    "vh": 390,
+    "scrollWidth": 844,
+    "clientWidth": 844,
+    "overflowX": false,
+    "battlefieldRatio": 0.641,
+    "viewportCss": {
+      "w": 844,
+      "h": 250
+    },
+    "clipped": [],
+    "toastHits": [],
+    "diagDisplay": "none",
+    "canvasCount": 1,
+    "sameCanvas": true,
+    "contextLost": false,
+    "threeRevision": "160",
+    "isCustomShim": false
+  },
   "diagHudCheck": {
     "visible": true,
     "fields": {
-      "fpsRolling": "36.9",
-      "fps1Low": "6.0",
-      "frameTime": "27.1 / 66.7 ms",
-      "drawCalls": "25 (29 inst)",
-      "triangles": "6,156",
-      "units": "10",
-      "instanced": "29 (215 inst)",
+      "fpsRolling": "43.6",
+      "fps1Low": "8.6",
+      "frameTime": "22.9 / 50.0 ms",
+      "drawCalls": "21 (25 inst)",
+      "triangles": "5,900",
+      "units": "8",
+      "instanced": "29 (231 inst)",
       "dpr": "1.00 / 2.00",
       "preset": "BALANCED",
       "ctxLoss": "0",
-      "viewport": "390×756 (390×756)"
+      "viewport": "390×682 (390×682)"
     },
     "sampleCount": 4,
+    "schemaVersion": "starfront-3d-r2.2-telemetry-v1",
+    "frameDeltaCount": 240,
+    "hasViewportEvent": true,
+    "hasVisibilityEvent": true,
+    "hasPresetEvent": true,
+    "measuresCpuSubmit": true,
     "hudHealthAfter": {
       "ok": true,
       "errorCount": 0,

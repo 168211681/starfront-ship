@@ -660,6 +660,147 @@ async function verifyFixedBuild() {
       };
     })()`);
 
+    // R2.2: iPhone portrait 402×566, diagnostic collapse, Safari chrome micro-resize,
+    // and a representative landscape viewport. Gameplay above stays on the desktop viewport.
+    await cdp.send('Emulation.setDeviceMetricsOverride', {
+      width: 402,
+      height: 566,
+      deviceScaleFactor: 2,
+      mobile: true
+    });
+    await new Promise((r) => setTimeout(r, 450));
+
+    const layoutProbe = `(() => {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const doc = document.documentElement;
+      const shell = document.querySelector('.app-shell').getBoundingClientRect();
+      const vp = document.getElementById('viewport3d').getBoundingClientRect();
+      const toast = document.getElementById('statusToast');
+      toast.style.opacity = '1';
+      toast.textContent = 'Attack-Move armed. Tap the battlefield to order the squad.';
+      const toastRect = toast.getBoundingClientRect();
+      const buttons = Array.from(document.querySelectorAll('button'));
+      const clipped = [];
+      for (const el of buttons) {
+        const scrollParent = el.closest('.dock-scroll, .hud-pills');
+        const box = (scrollParent || el).getBoundingClientRect();
+        const self = el.getBoundingClientRect();
+        const containerOverflow = box.left < -1 || box.right > vw + 1 || box.top < -1 || box.bottom > vh + 1;
+        const headerTool = el.closest('.hud-tools');
+        const selfClipped = !!(headerTool && (self.left < -1 || self.right > vw + 1 || self.bottom > vh + 1 || self.width < 1 || self.height < 1));
+        if (containerOverflow || selfClipped) {
+          clipped.push({
+            id: el.id,
+            boxRight: Math.round(box.right),
+            selfRight: Math.round(self.right),
+            vw
+          });
+        }
+      }
+      const toastHits = buttons.filter((b) => {
+        const r = b.getBoundingClientRect();
+        if (r.width < 1 || r.height < 1) return false;
+        const panel = b.closest('#diagHudPanel');
+        if (panel && getComputedStyle(panel).display === 'none') return false;
+        return !(toastRect.right < r.left || toastRect.left > r.right || toastRect.bottom < r.top || toastRect.top > r.bottom);
+      }).map((b) => b.id);
+      const panel = document.getElementById('diagHudPanel');
+      const { scene3d } = window.STARFRONT_3D;
+      const canvas = scene3d.renderer.domElement;
+      const gl = scene3d.renderer.getContext();
+      const revision = window.THREE && window.THREE.REVISION;
+      const officialFlag = window.THREE && window.THREE.IS_OFFICIAL_THREE;
+      return {
+        vw,
+        vh,
+        scrollWidth: doc.scrollWidth,
+        clientWidth: doc.clientWidth,
+        overflowX: doc.scrollWidth > doc.clientWidth + 1,
+        battlefieldRatio: shell.height > 0 ? Number((vp.height / shell.height).toFixed(3)) : 0,
+        viewportCss: { w: Math.round(vp.width), h: Math.round(vp.height) },
+        clipped,
+        toastHits,
+        diagDisplay: panel ? getComputedStyle(panel).display : 'missing',
+        canvasCount: document.querySelectorAll('#viewport3d canvas').length,
+        sameCanvas: canvas === document.querySelector('#viewport3d canvas'),
+        contextLost: gl ? gl.isContextLost() : true,
+        threeRevision: revision || '',
+        isCustomShim: !window.THREE || officialFlag === false || /offline|shim|webgl2-vs001|starfront/i.test(String(revision || ''))
+      };
+    })()`;
+
+    const portraitCheck = await evalExpr(layoutProbe);
+    const portraitShot = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    const portraitScreenshotPath = path.join(screenshotsDir, 'portrait-402.png');
+    fs.writeFileSync(portraitScreenshotPath, Buffer.from(portraitShot.data, 'base64'));
+
+    const diagToggleCheck = await evalExpr(`(() => {
+      const panel = document.getElementById('diagHudPanel');
+      const toggle = document.getElementById('btnToggleDiagHud');
+      const closeBtn = document.getElementById('btnDiagClose');
+      const startedCollapsed = panel && getComputedStyle(panel).display === 'none';
+      if (toggle) toggle.click();
+      const expanded = panel && getComputedStyle(panel).display !== 'none';
+      const expandedShotReady = expanded === true;
+      if (closeBtn) closeBtn.click();
+      const collapsedAgain = panel && getComputedStyle(panel).display === 'none';
+      return { startedCollapsed, expanded, expandedShotReady, collapsedAgain };
+    })()`);
+
+    const resizeBefore = await evalExpr(`(() => {
+      const { scene3d } = window.STARFRONT_3D;
+      scene3d.handleResize(true);
+      const canvas = scene3d.renderer.domElement;
+      const gl = scene3d.renderer.getContext();
+      return {
+        cssW: canvas.parentElement.clientWidth,
+        cssH: canvas.parentElement.clientHeight,
+        bufW: canvas.width,
+        bufH: canvas.height,
+        contextLost: gl ? gl.isContextLost() : true
+      };
+    })()`);
+
+    await cdp.send('Emulation.setDeviceMetricsOverride', {
+      width: 402,
+      height: 554,
+      deviceScaleFactor: 2,
+      mobile: true
+    });
+    await new Promise((r) => setTimeout(r, 450));
+
+    const resizeAfter = await evalExpr(`(() => {
+      const { scene3d } = window.STARFRONT_3D;
+      scene3d.handleResize();
+      const canvas = scene3d.renderer.domElement;
+      const gl = scene3d.renderer.getContext();
+      const events = window.STARFRONT_3D.getSessionTelemetry().events;
+      const lastResize = events.filter((e) => e.kind === 'viewport-resize').slice(-1)[0] || null;
+      return {
+        cssW: canvas.parentElement.clientWidth,
+        cssH: canvas.parentElement.clientHeight,
+        bufW: canvas.width,
+        bufH: canvas.height,
+        contextLost: gl ? gl.isContextLost() : true,
+        canvasCount: document.querySelectorAll('#viewport3d canvas').length,
+        lastResize
+      };
+    })()`);
+
+    await cdp.send('Emulation.setDeviceMetricsOverride', {
+      width: 844,
+      height: 390,
+      deviceScaleFactor: 2,
+      mobile: true
+    });
+    await new Promise((r) => setTimeout(r, 450));
+
+    const landscapeCheck = await evalExpr(layoutProbe);
+    const landscapeShot = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    const landscapeScreenshotPath = path.join(screenshotsDir, 'landscape-iphone.png');
+    fs.writeFileSync(landscapeScreenshotPath, Buffer.from(landscapeShot.data, 'base64'));
+
     // 10. Mobile Viewport (390x844 iPhone size) + Two-Finger Pinch Zoom & Pan Verification
     await cdp.send('Emulation.setDeviceMetricsOverride', {
       width: 390,
@@ -737,10 +878,17 @@ async function verifyFixedBuild() {
       if (btnStop) btnStop.click();
       const exportedReport = window.STARFRONT_3D?.getLastTelemetryReport?.() || null;
       const hudHealthAfter = window.STARFRONT_3D?.getHudHealth?.() || { ok: false, errorCount: -1, errors: [] };
+      const events = exportedReport?.events || [];
       return {
         visible,
         fields,
         sampleCount: exportedReport?.sampleCount ?? 0,
+        schemaVersion: exportedReport?.schemaVersion || '',
+        frameDeltaCount: Array.isArray(exportedReport?.recentFrameDeltasMs) ? exportedReport.recentFrameDeltasMs.length : 0,
+        hasViewportEvent: events.some((e) => e.kind === 'viewport-resize'),
+        hasVisibilityEvent: events.some((e) => e.kind === 'visibility'),
+        hasPresetEvent: events.some((e) => e.kind === 'graphics-preset'),
+        measuresCpuSubmit: typeof exportedReport?.measurementMethod?.cpuRenderSubmissionTime === 'string',
         hudHealthAfter,
         exportedReport
       };
@@ -764,16 +912,29 @@ async function verifyFixedBuild() {
       screenshots: {
         desktop: 'artifacts/screenshots/desktop-battlefield.png',
         mobile: 'artifacts/screenshots/mobile-battlefield.png',
-        iphoneDiagnosticHud: 'artifacts/screenshots/iphone-diagnostic-hud.png'
+        iphoneDiagnosticHud: 'artifacts/screenshots/iphone-diagnostic-hud.png',
+        portrait402: 'artifacts/screenshots/portrait-402.png',
+        landscapeIphone: 'artifacts/screenshots/landscape-iphone.png'
       },
       desktopCheck,
       hudVerification,
       gameplayCheck,
       mobileCheck,
+      portraitCheck,
+      diagToggleCheck,
+      resizeBefore,
+      resizeAfter,
+      landscapeCheck,
       diagHudCheck: {
         visible: diagHudCheck.visible,
         fields: diagHudCheck.fields,
         sampleCount: diagHudCheck.sampleCount,
+        schemaVersion: diagHudCheck.schemaVersion,
+        frameDeltaCount: diagHudCheck.frameDeltaCount,
+        hasViewportEvent: diagHudCheck.hasViewportEvent,
+        hasVisibilityEvent: diagHudCheck.hasVisibilityEvent,
+        hasPresetEvent: diagHudCheck.hasPresetEvent,
+        measuresCpuSubmit: diagHudCheck.measuresCpuSubmit,
         hudHealthAfter: diagHudCheck.hudHealthAfter
       }
     };
@@ -786,7 +947,7 @@ async function verifyFixedBuild() {
 }
 
 console.log('==================================================================');
-console.log('STARFRONT 3D — HEADLESS CHROMIUM WEBGL2 VERIFICATION (GATE R2.1)');
+console.log('STARFRONT 3D — HEADLESS CHROMIUM WEBGL2 VERIFICATION (GATE R2.2)');
 console.log('==================================================================');
 
 const fixedReport = await verifyFixedBuild();
@@ -799,6 +960,20 @@ const h = fixedReport.hudVerification;
 const g = fixedReport.gameplayCheck;
 const m = fixedReport.mobileCheck;
 const diag = fixedReport.diagHudCheck;
+const portrait = fixedReport.portraitCheck;
+const land = fixedReport.landscapeCheck;
+const resizeOk =
+  fixedReport.resizeBefore &&
+  fixedReport.resizeAfter &&
+  fixedReport.resizeBefore.bufH === fixedReport.resizeAfter.bufH &&
+  fixedReport.resizeBefore.bufW === fixedReport.resizeAfter.bufW &&
+  fixedReport.resizeAfter.cssH < fixedReport.resizeBefore.cssH &&
+  fixedReport.resizeAfter.cssH <= fixedReport.resizeBefore.cssH - 8 &&
+  fixedReport.resizeAfter.contextLost === false &&
+  fixedReport.resizeAfter.canvasCount === 1 &&
+  fixedReport.resizeAfter.lastResize &&
+  fixedReport.resizeAfter.lastResize.applied === false &&
+  fixedReport.resizeAfter.lastResize.reason === 'ignored-safari-chrome-micro-resize';
 
 const assertions = [
   ['0. Real Chromium executable & readiness verified', Boolean(fixedReport.browserExecutable?.bin && fixedReport.browserExecutable?.version && d.ready === true && d.firstFrameRendered === true && d.canonicalHarnessPresent === true)],
@@ -814,7 +989,11 @@ const assertions = [
   ['9. Camera pan and zoom work (desktop + mobile pinch)', g.cameraPanWorked === true && g.cameraZoomWorked === true && m.pinchZoomWorked === true],
   ['10. No uncaught JavaScript errors or console errors', fixedReport.exceptions.length === 0 && fixedReport.consoleErrors.length === 0],
   ['11. No unexpected external network dependencies', fixedReport.externalNetworkRequests.length === 0],
-  ['12. Tactical HUD & iPhone Diagnostic HUD + JSON telemetry export (sampleCount) work', h.ok === true && diag.hudHealthAfter?.ok === true && diag.visible === true && diag.sampleCount >= 2 && parseInt(diag.fields.instanced, 10) >= 14]
+  ['12. Tactical HUD & iPhone Diagnostic HUD + JSON telemetry export (sampleCount) work', h.ok === true && diag.hudHealthAfter?.ok === true && diag.visible === true && diag.sampleCount >= 2 && parseInt(diag.fields.instanced, 10) >= 14 && diag.schemaVersion === 'starfront-3d-r2.2-telemetry-v1' && diag.frameDeltaCount >= 2 && diag.hasViewportEvent === true && diag.hasVisibilityEvent === true && diag.hasPresetEvent === true && diag.measuresCpuSubmit === true],
+  ['13. Portrait 402×566 HUD stays inside the screen and the battlefield is the majority', portrait && portrait.vw === 402 && portrait.vh === 566 && portrait.overflowX === false && portrait.clipped.length === 0 && portrait.toastHits.length === 0 && portrait.battlefieldRatio >= 0.58 && portrait.canvasCount === 1 && portrait.sameCanvas === true && portrait.contextLost === false && portrait.isCustomShim === false],
+  ['14. Diagnostic HUD starts collapsed and can expand then minimize', fixedReport.diagToggleCheck?.startedCollapsed === true && fixedReport.diagToggleCheck?.expanded === true && fixedReport.diagToggleCheck?.collapsedAgain === true],
+  ['15. Safari chrome micro-resize does not reallocate the drawing buffer', resizeOk === true],
+  ['16. Landscape HUD fits, canvas stays initialized, official Three.js remains', land && land.vw === 844 && land.vh === 390 && land.overflowX === false && land.clipped.length === 0 && land.toastHits.length === 0 && land.battlefieldRatio >= 0.5 && land.canvasCount === 1 && land.sameCanvas === true && land.contextLost === false && land.isCustomShim === false]
 ];
 
 console.log('\n[Task D Browser Verification Assertions Summary]');
@@ -828,5 +1007,5 @@ if (failed > 0) {
   console.error(`\nBrowser verification failed ${failed} check(s)!`);
   process.exit(1);
 }
-console.log('\nALL 13 BROWSER & DIAGNOSTIC HUD VERIFICATION CHECKS PASSED!');
+console.log('\nALL BROWSER, HUD, AND R2.2 VIEWPORT CHECKS PASSED!');
 process.exit(0);

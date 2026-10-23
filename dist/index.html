@@ -27,58 +27,87 @@
       display: flex;
       flex-direction: column;
       width: 100%;
+      max-width: 100%;
       height: 100dvh;
+      min-height: 0;
       overflow: hidden;
     }
     .hud-bar {
       background: rgba(10, 18, 36, 0.94);
       border-bottom: 1px solid rgba(56, 189, 248, 0.3);
-      padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 6px max(10px, env(safe-area-inset-left));
+      padding: max(4px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 4px max(8px, env(safe-area-inset-left));
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 8px;
+      gap: 6px;
       z-index: 20;
       flex-shrink: 0;
+      min-width: 0;
+      max-width: 100%;
     }
     .hud-pills {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       overflow-x: auto;
+      flex: 1 1 auto;
+      min-width: 0;
       scrollbar-width: none;
+    }
+    .hud-pills::-webkit-scrollbar,
+    .dock-scroll::-webkit-scrollbar {
+      display: none;
+    }
+    .hud-tools {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex: 0 0 auto;
     }
     .hud-pill {
       background: rgba(15, 23, 42, 0.95);
       border: 1px solid rgba(56, 189, 248, 0.35);
       border-radius: 8px;
-      padding: 3px 8px;
-      font-size: 12px;
+      padding: 2px 7px;
+      font-size: 11px;
       font-weight: 700;
       white-space: nowrap;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
+      flex: 0 0 auto;
+      min-height: 32px;
+    }
+    .hud-fps {
+      border-color: rgba(52, 211, 153, 0.55);
+      min-width: 52px;
+      justify-content: center;
+    }
+    .fps-unit {
+      color: #86efac;
+      font-size: 9px;
+      letter-spacing: 0.04em;
     }
     .hud-btn {
       background: rgba(30, 41, 59, 0.92);
       border: 1px solid rgba(148, 163, 184, 0.4);
       color: #e2e8f0;
       border-radius: 8px;
-      padding: 5px 9px;
-      font-size: 11px;
+      padding: 6px 10px;
+      font-size: 12px;
       font-weight: 700;
       cursor: pointer;
       white-space: nowrap;
-      min-height: 30px;
+      min-height: 40px;
+      min-width: 40px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 4px;
+      flex: 0 0 auto;
       touch-action: manipulation;
     }
     .hud-btn:active {
-      transform: scale(0.95);
+      transform: scale(0.96);
     }
     .active-btn {
       background: #0284c7 !important;
@@ -92,8 +121,9 @@
     }
     #viewport3d {
       position: relative;
-      flex: 1;
+      flex: 1 1 auto;
       width: 100%;
+      min-height: 0;
       overflow: hidden;
       background: #07101f;
     }
@@ -105,50 +135,23 @@
       pointer-events: none;
       z-index: 15;
     }
-    .floating-left {
-      position: absolute;
-      top: 8px;
-      left: max(8px, env(safe-area-inset-left));
-      z-index: 18;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .floating-right {
-      position: absolute;
-      top: 8px;
-      right: max(8px, env(safe-area-inset-right));
-      z-index: 18;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      align-items: flex-end;
-    }
-    .control-cluster {
-      background: rgba(10, 18, 36, 0.9);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      border-radius: 10px;
-      padding: 4px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
-    /* PHASE 3: iPhone-First Safari Diagnostic Performance HUD */
     #diagHudPanel {
+      display: none;
       position: absolute;
-      bottom: 8px;
+      top: 8px;
       left: max(8px, env(safe-area-inset-left));
+      right: max(8px, env(safe-area-inset-right));
       z-index: 24;
-      background: rgba(6, 11, 22, 0.92);
+      background: rgba(6, 11, 22, 0.94);
       border: 1px solid rgba(56, 189, 248, 0.45);
       border-radius: 10px;
-      padding: 7px 9px;
+      padding: 8px 10px;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: 10px;
       line-height: 1.35;
       color: #e2e8f0;
-      min-width: 248px;
-      max-width: min(330px, calc(100vw - 16px));
+      max-height: min(46vh, 280px);
+      overflow: auto;
       pointer-events: auto;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
     }
@@ -156,12 +159,13 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 8px;
       border-bottom: 1px solid rgba(56, 189, 248, 0.25);
       padding-bottom: 4px;
       margin-bottom: 5px;
       font-weight: 700;
       color: #38bdf8;
-      font-size: 10px;
+      font-size: 11px;
     }
     .diag-grid {
       display: grid;
@@ -186,19 +190,20 @@
       display: flex;
       gap: 5px;
       border-top: 1px solid rgba(56, 189, 248, 0.2);
-      padding-top: 5px;
+      padding-top: 6px;
     }
     .diag-btn {
       flex: 1;
       background: rgba(15, 23, 42, 0.95);
       border: 1px solid rgba(56, 189, 248, 0.45);
       color: #bae6fd;
-      border-radius: 6px;
-      padding: 4px 6px;
-      font-size: 9.5px;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 11px;
       font-weight: 700;
       cursor: pointer;
       text-align: center;
+      min-height: 40px;
       touch-action: manipulation;
     }
     .diag-btn:disabled {
@@ -218,41 +223,64 @@
       border-color: rgba(251, 191, 36, 0.6);
       color: #fde68a;
     }
+    .diag-close {
+      flex: 0 0 auto;
+      min-width: 40px;
+      padding: 6px 10px;
+    }
     #statusToast {
       position: absolute;
-      top: 52px;
+      top: 8px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(10, 18, 36, 0.94);
+      max-width: calc(100% - 24px);
+      background: rgba(10, 18, 36, 0.92);
       border: 1px solid rgba(56, 189, 248, 0.55);
       color: #bae6fd;
-      padding: 5px 14px;
-      border-radius: 999px;
+      padding: 6px 12px;
+      border-radius: 10px;
       font-size: 12px;
       font-weight: 700;
+      line-height: 1.3;
+      text-align: center;
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.2s ease;
-      z-index: 25;
-      white-space: nowrap;
+      z-index: 12;
+      white-space: normal;
     }
     .footer-dock {
-      background: rgba(10, 18, 36, 0.95);
+      background: rgba(10, 18, 36, 0.96);
       border-top: 1px solid rgba(56, 189, 248, 0.3);
-      padding: 6px max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+      padding: 4px max(8px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
       z-index: 20;
       flex-shrink: 0;
+      min-width: 0;
+      max-width: 100%;
     }
-    .dock-row {
+    .dock-status {
+      font-size: 11px;
+      line-height: 14px;
+      height: 14px;
+      color: #7dd3fc;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+    .dock-scroll {
       display: flex;
       align-items: center;
-      justify-content: space-between;
       gap: 6px;
       overflow-x: auto;
+      overflow-y: hidden;
       scrollbar-width: none;
+      max-width: 100%;
+      min-width: 0;
     }
     #victoryModal {
       display: none;
@@ -262,7 +290,7 @@
       z-index: 50;
       align-items: center;
       justify-content: center;
-      padding: 16px;
+      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     }
     .modal-card {
       background: rgba(10, 18, 36, 0.96);
@@ -273,117 +301,112 @@
       width: 100%;
       text-align: center;
     }
+    @media (max-height: 460px) {
+      .hud-bar {
+        padding-top: max(2px, env(safe-area-inset-top));
+        padding-bottom: 2px;
+      }
+      .hud-btn {
+        min-height: 36px;
+        padding: 4px 8px;
+        font-size: 11px;
+      }
+      .hud-pill {
+        min-height: 28px;
+      }
+      .footer-dock {
+        gap: 3px;
+        padding-top: 3px;
+        padding-bottom: max(3px, env(safe-area-inset-bottom));
+      }
+      .diag-btn {
+        min-height: 36px;
+      }
+      #diagHudPanel {
+        max-height: min(50vh, 200px);
+      }
+    }
   </style>
-  <script type="module" crossorigin src="./assets/index-CRaObtLs.js"></script>
+  <script type="module" crossorigin src="./assets/index-CJ5DEaId.js"></script>
 </head>
 <body>
   <div class="app-shell">
-    <!-- TOP RESOURCE & TELEMETRY HUD -->
     <header class="hud-bar">
       <div class="hud-pills">
-        <div class="hud-pill" title="Economy GDP & Income Rate">
-          <span>💰 GDP</span>
+        <div class="hud-pill" title="Economy GDP and income">
+          <span>GDP</span>
           <span id="hudGdp" style="color:#38bdf8">620</span>
           <span id="hudGdpRate" style="color:#34d399;font-size:10px">+8/s</span>
         </div>
-        <div class="hud-pill" title="Army Supply">
-          <span>👥 Supply</span>
+        <div class="hud-pill" title="Army supply">
+          <span>Supply</span>
           <span id="hudSupply" style="color:#34d399">15/26</span>
         </div>
-        <div class="hud-pill" title="Base Power">
-          <span>⚡ Power</span>
+        <div class="hud-pill" title="Base power">
+          <span>Power</span>
           <span id="hudPower" style="color:#fbbf24">13/25</span>
         </div>
-        <div class="hud-pill" title="Central Outpost Status">
-          <span>🏳️ Outpost:</span>
+        <div class="hud-pill" title="Central outpost">
+          <span>OP</span>
           <span id="hudOutpost" style="color:#e2e8f0">NEUTRAL</span>
         </div>
       </div>
-
-      <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
-        <div class="hud-pill" style="border-color:rgba(56,189,248,0.4)" title="WebGL2 Draw Calls & Triangles">
-          <span id="hudDrawCalls" style="color:#38bdf8;font-size:11px">0 draws</span>
+      <div class="hud-tools">
+        <div class="hud-pill hud-fps" title="Rolling average frames per second">
+          <span id="hudFps" style="color:#4ade80">60</span>
+          <span class="fps-unit">FPS</span>
         </div>
-        <div class="hud-pill" style="border-color:rgba(52,211,153,0.4)">
-          <span id="hudFps" style="color:#4ade80">60 FPS</span>
-        </div>
-        <button id="btnToggleDiagHud" class="hud-btn active-btn" title="Toggle iPhone Safari Diagnostic HUD">📊 HUD</button>
-        <button id="btnQualityPreset" class="hud-btn" title="Cycle Eco / Balanced / Quality Presets">⚙️ BALANCED</button>
-        <button id="btnPauseGame" class="hud-btn">⏸️ PAUSE</button>
+        <button id="btnQualityPreset" class="hud-btn" type="button" title="Graphics preset: Balanced. Tap to cycle Eco, Balanced, Quality">BAL</button>
+        <button id="btnPauseGame" class="hud-btn" type="button" title="Pause simulation">Pause</button>
+        <button id="btnToggleDiagHud" class="hud-btn" type="button" title="Show diagnostics" aria-expanded="false" aria-controls="diagHudPanel">Diag</button>
       </div>
     </header>
 
-    <!-- 3D WEBGL2 BATTLEFIELD VIEWPORT -->
     <main id="viewport3d">
       <div id="selectionBox"></div>
-      <div id="statusToast">STARFRONT 3D Vertical Slice Ready</div>
+      <div id="statusToast">STARFRONT 3D ready</div>
 
-      <!-- Top-Left Input Mode & Unit Production Strip -->
-      <div class="floating-left">
-        <div class="control-cluster">
-          <button id="btnModeSelect" class="hud-btn active-btn">🟩 Box/Select</button>
-          <button id="btnModePan" class="hud-btn">🖐️ Pan Cam</button>
-          <button id="btnSelectAll" class="hud-btn">⚔️ All Army</button>
-        </div>
-        <div class="control-cluster">
-          <button id="btnTrainMarine" class="hud-btn">🔫 Rifle (90)</button>
-          <button id="btnTrainTrooper" class="hud-btn">🚀 SpecOps (135)</button>
-          <button id="btnTrainApc" class="hud-btn">🚐 APC (180)</button>
-          <button id="btnTrainTank" class="hud-btn">🚜 Tank (240)</button>
-          <button id="btnBuildTurret" class="hud-btn">🗼 +Turret (150)</button>
-        </div>
-      </div>
-
-      <!-- Top-Right 3D Camera Controls -->
-      <div class="floating-right">
-        <div class="control-cluster">
-          <button id="btnCamRotateL" class="hud-btn" title="Rotate Camera Left">↺</button>
-          <button id="btnCamZoomOut" class="hud-btn" title="Zoom Out">➖</button>
-          <button id="btnCamZoomIn" class="hud-btn" title="Zoom In">➕</button>
-          <button id="btnCamRotateR" class="hud-btn" title="Rotate Camera Right">↻</button>
-          <button id="btnCamFocus" class="hud-btn" title="Focus on Selected Units">🎯 Focus</button>
-          <button id="btnCamOutpost" class="hud-btn" title="Center on Bridge & Outpost">🌉 Bridge</button>
-          <button id="btnCamReset" class="hud-btn" title="Reset Camera">🧭 Reset</button>
-        </div>
-      </div>
-
-      <!-- PHASE 3: iPhone-First Diagnostic Performance HUD Overlay -->
-      <section id="diagHudPanel" aria-label="iPhone Performance Diagnostic HUD">
+      <section id="diagHudPanel" aria-label="Performance diagnostics" aria-hidden="true">
         <div class="diag-header">
-          <span>📱 iPHONE SAFARI DIAGNOSTIC HUD</span>
+          <span>Diagnostics</span>
           <span id="diagRecStatus" style="color:#94a3b8">IDLE</span>
+          <button id="btnDiagClose" class="diag-btn diag-close" type="button" title="Minimize diagnostics">Hide</button>
         </div>
         <div class="diag-grid">
           <div class="diag-row">
-            <span class="diag-label">FPS (Avg):</span>
+            <span class="diag-label">FPS avg:</span>
             <span id="diagFpsAvg" class="diag-val" style="color:#4ade80">60.0</span>
           </div>
           <div class="diag-row">
-            <span class="diag-label">~1% Low FPS:</span>
+            <span class="diag-label">~1% low:</span>
             <span id="diagFps1Low" class="diag-val" style="color:#38bdf8">55.0</span>
           </div>
           <div class="diag-row">
-            <span class="diag-label">Frame (Avg/p95):</span>
-            <span id="diagFrameTime" class="diag-val">16.7 / 18.2 ms</span>
+            <span class="diag-label">rAF avg/p95:</span>
+            <span id="diagFrameTime" class="diag-val">16.7 / 18.2</span>
           </div>
           <div class="diag-row">
-            <span class="diag-label">Draw Calls:</span>
+            <span class="diag-label">CPU submit:</span>
+            <span id="diagCpuRender" class="diag-val">0.0 ms</span>
+          </div>
+          <div class="diag-row">
+            <span class="diag-label">Draws:</span>
             <span id="diagDrawCalls" class="diag-val" style="color:#38bdf8">19</span>
           </div>
           <div class="diag-row">
             <span class="diag-label">Triangles:</span>
-            <span id="diagTriangles" class="diag-val">26,844</span>
+            <span id="diagTriangles" class="diag-val">0</span>
           </div>
           <div class="diag-row">
-            <span class="diag-label">Active Units:</span>
+            <span class="diag-label">Units:</span>
             <span id="diagUnits" class="diag-val">26</span>
           </div>
           <div class="diag-row">
-            <span class="diag-label">Inst. Meshes:</span>
-            <span id="diagInstMeshes" class="diag-val">2 (12 inst)</span>
+            <span class="diag-label">Instanced:</span>
+            <span id="diagInstMeshes" class="diag-val">2</span>
           </div>
           <div class="diag-row">
-            <span class="diag-label">DPR (Render/Dev):</span>
+            <span class="diag-label">DPR rnd/dev:</span>
             <span id="diagDpr" class="diag-val">1.00 / 1.00</span>
           </div>
           <div class="diag-row">
@@ -391,45 +414,60 @@
             <span id="diagPreset" class="diag-val" style="color:#fbbf24">BALANCED</span>
           </div>
           <div class="diag-row">
-            <span class="diag-label">WebGL Ctx Loss:</span>
+            <span class="diag-label">Ctx loss:</span>
             <span id="diagCtxLoss" class="diag-val">0</span>
           </div>
+          <div class="diag-row">
+            <span class="diag-label">Top draws:</span>
+            <span id="hudDrawCalls" class="diag-val">0</span>
+          </div>
           <div class="diag-row" style="grid-column: span 2;">
-            <span class="diag-label">Viewport (CSS / Buf):</span>
-            <span id="diagViewport" class="diag-val">0×0 / 0×0</span>
+            <span class="diag-label">Viewport:</span>
+            <span id="diagViewport" class="diag-val">0×0</span>
           </div>
         </div>
         <div class="diag-actions">
-          <button id="btnDiagStartRec" class="diag-btn diag-btn-rec">⏺ START RECORDING</button>
-          <button id="btnDiagStopExport" class="diag-btn diag-btn-stop" disabled>⏹ STOP &amp; EXPORT JSON</button>
+          <button id="btnDiagStartRec" class="diag-btn diag-btn-rec" type="button">Start</button>
+          <button id="btnDiagStopExport" class="diag-btn diag-btn-stop" type="button" disabled>Export JSON</button>
         </div>
       </section>
     </main>
 
-    <!-- BOTTOM TACTICAL COMMAND DOCK -->
     <footer class="footer-dock">
-      <div class="dock-row">
-        <div id="hudSelected" style="font-size:11px;color:#7dd3fc;font-weight:600;truncate">
-          Tap or drag-box friendly units (Cyan) to issue Move or Attack-Move orders
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-          <button id="btnAttackMove" class="hud-btn" style="background:#be123c;border-color:#fb7185;color:#fff">🔥 Attack-Move</button>
-          <button id="btnHoldOrder" class="hud-btn">🛑 Hold</button>
-          <button id="btnRetreatOrder" class="hud-btn">🛡️ Retreat</button>
-        </div>
+      <div id="hudSelected" class="dock-status">Tap or drag-box friendly units to move or attack-move</div>
+      <div class="dock-scroll" aria-label="Selection and production">
+        <button id="btnModeSelect" class="hud-btn active-btn" type="button" title="Box select">Select</button>
+        <button id="btnModePan" class="hud-btn" type="button" title="Pan the camera">Pan</button>
+        <button id="btnSelectAll" class="hud-btn" type="button" title="Select the whole army">Army</button>
+        <button id="btnTrainMarine" class="hud-btn" type="button" title="Train rifle infantry, 90 GDP">Rifle 90</button>
+        <button id="btnTrainTrooper" class="hud-btn" type="button" title="Train special operations, 135 GDP">SpecOps 135</button>
+        <button id="btnTrainApc" class="hud-btn" type="button" title="Train APC, 180 GDP">APC 180</button>
+        <button id="btnTrainTank" class="hud-btn" type="button" title="Train tank, 240 GDP">Tank 240</button>
+        <button id="btnBuildTurret" class="hud-btn" type="button" title="Build a laser turret, 150 GDP">Turret 150</button>
+      </div>
+      <div class="dock-scroll" aria-label="Camera and orders">
+        <button id="btnCamRotateL" class="hud-btn" type="button" title="Rotate camera left">↺</button>
+        <button id="btnCamZoomOut" class="hud-btn" type="button" title="Zoom out">−</button>
+        <button id="btnCamZoomIn" class="hud-btn" type="button" title="Zoom in">+</button>
+        <button id="btnCamRotateR" class="hud-btn" type="button" title="Rotate camera right">↻</button>
+        <button id="btnCamFocus" class="hud-btn" type="button" title="Focus on selected units">Focus</button>
+        <button id="btnCamOutpost" class="hud-btn" type="button" title="Center on the bridge and outpost">Bridge</button>
+        <button id="btnCamReset" class="hud-btn" type="button" title="Reset camera">Reset</button>
+        <button id="btnAttackMove" class="hud-btn" type="button" title="Attack-move" style="background:#be123c;border-color:#fb7185;color:#fff">Attack</button>
+        <button id="btnHoldOrder" class="hud-btn" type="button" title="Hold position">Hold</button>
+        <button id="btnRetreatOrder" class="hud-btn" type="button" title="Retreat to HQ">Retreat</button>
       </div>
     </footer>
   </div>
 
-  <!-- VICTORY / DEFEAT MODAL -->
   <div id="victoryModal">
     <div class="modal-card">
-      <h2 id="victoryTitle" style="margin:0 0 8px 0;color:#facc15;font-size:20px">VICTORY!</h2>
+      <h2 id="victoryTitle" style="margin:0 0 8px 0;color:#facc15;font-size:20px">VICTORY</h2>
       <p style="margin:0 0 16px 0;font-size:13px;color:#cbd5e1">
-        All hostile headquarters on the 3D Vertical Slice battlefield have been neutralized.
+        Hostile headquarters on this battlefield have been neutralized.
       </p>
-      <button id="btnRestartGame" class="hud-btn active-btn" style="width:100%;padding:10px;font-size:13px">
-        🔄 Play Vertical Slice Again
+      <button id="btnRestartGame" class="hud-btn active-btn" type="button" style="width:100%;padding:10px;font-size:13px">
+        Play again
       </button>
     </div>
   </div>
