@@ -1,0 +1,76 @@
+{
+  "generatedAt": "2026-10-23T11:57:24.294Z",
+  "totalModules": 11,
+  "threeModuleCount": 1,
+  "customShimModuleCount": 0,
+  "usesOfficialThree": true,
+  "threeModules": [
+    "/workspace/node_modules/three/build/three.module.js"
+  ],
+  "modules": [
+    {
+      "id": "/workspace/index.html",
+      "importedIds": [
+        "/workspace/index.html?html-proxy&inline-css&index=0.css",
+        "/workspace/src/boot.ts"
+      ]
+    },
+    {
+      "id": "/workspace/index.html?html-proxy&inline-css&index=0.css",
+      "importedIds": []
+    },
+    {
+      "id": "/workspace/src/boot.ts",
+      "importedIds": []
+    },
+    {
+      "id": "/workspace/src/main.ts",
+      "importedIds": [
+        "/workspace/node_modules/three/build/three.module.js",
+        "/workspace/src/core/simulation.ts",
+        "/workspace/src/render/scene3d.ts",
+        "/workspace/src/input/inputController.ts"
+      ]
+    },
+    {
+      "id": "/workspace/node_modules/three/build/three.module.js",
+      "importedIds": []
+    },
+    {
+      "id": "/workspace/src/core/simulation.ts",
+      "importedIds": [
+        "/workspace/src/core/specs.ts"
+      ]
+    },
+    {
+      "id": "/workspace/src/render/scene3d.ts",
+      "importedIds": [
+        "/workspace/node_modules/three/build/three.module.js",
+        "/workspace/src/core/specs.ts",
+        "/workspace/src/adapter/worldAdapter.ts",
+        "/workspace/src/render/models3d.ts"
+      ]
+    },
+    {
+      "id": "/workspace/src/input/inputController.ts",
+      "importedIds": []
+    },
+    {
+      "id": "/workspace/src/core/specs.ts",
+      "importedIds": []
+    },
+    {
+      "id": "/workspace/src/adapter/worldAdapter.ts",
+      "importedIds": [
+        "/workspace/src/core/specs.ts"
+      ]
+    },
+    {
+      "id": "/workspace/src/render/models3d.ts",
+      "importedIds": [
+        "/workspace/node_modules/three/build/three.module.js",
+        "/workspace/src/core/specs.ts"
+      ]
+    }
+  ]
+}

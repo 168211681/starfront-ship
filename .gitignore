@@ -1,0 +1,7 @@
+node_modules/
+*.log
+.DS_Store
+README.seeded.md
+uploads/
+/tmp/
+lockfile-repair.diff

@@ -1,0 +1,7 @@
+{
+  "name": "three-offline-webgl2-shim",
+  "version": "0.160.0-offline-shim",
+  "type": "module",
+  "main": "./index.js",
+  "description": "ISOLATED offline shim. NOT official three. Must not be placed in node_modules/three."
+}

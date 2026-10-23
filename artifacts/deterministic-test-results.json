@@ -1,0 +1,122 @@
+{
+  "timestamp": "2026-10-23T11:56:24.904Z",
+  "suitesRequested": {
+    "core": true,
+    "shim": true,
+    "offline": true
+  },
+  "summary": {
+    "passed": 13,
+    "total": 13,
+    "bySuite": {
+      "core": {
+        "pass": 11,
+        "fail": 0,
+        "total": 11
+      },
+      "shim": {
+        "pass": 1,
+        "fail": 0,
+        "total": 1
+      },
+      "offline": {
+        "pass": 1,
+        "fail": 0,
+        "total": 1
+      }
+    }
+  },
+  "results": [
+    {
+      "id": "TEST-01",
+      "name": "A1: Fighter cannot launch without required buildings (Airfield + Radar)",
+      "suite": "core",
+      "status": "PASS",
+      "detail": "Blocked when missing Airfield or Radar; crystals unchanged (1000/1000), cd=0"
+    },
+    {
+      "id": "TEST-02",
+      "name": "A1: Fighter cannot launch without sufficient resources (< 180 GDP)",
+      "suite": "core",
+      "status": "PASS",
+      "detail": "Blocked at 0 and 179 GDP"
+    },
+    {
+      "id": "TEST-03",
+      "name": "A1: Valid Fighter launch deducts 180 GDP, sets 11s cooldown, spawns 2 F-22s",
+      "suite": "core",
+      "status": "PASS",
+      "detail": "Crystals=320, cd=11s, airStrikes=2"
+    },
+    {
+      "id": "TEST-04",
+      "name": "A2: Bot 2 captures neutral outpost as bot2 (never assigned to enemy)",
+      "suite": "core",
+      "status": "PASS",
+      "detail": "owner=bot2, progress=100"
+    },
+    {
+      "id": "TEST-05",
+      "name": "A2: Enemy captures neutral outpost as enemy & contested outpost locks ownership",
+      "suite": "core",
+      "status": "PASS",
+      "detail": "owner=enemy, contested=true"
+    },
+    {
+      "id": "TEST-06",
+      "name": "A3: Zero resource balance stays valid (no || 400 fallback) & sanitizes NaN/negative",
+      "suite": "core",
+      "status": "PASS",
+      "detail": "bot2 after 1 tick=0.117 (no +400 jump)"
+    },
+    {
+      "id": "TEST-07",
+      "name": "A4: Fixed-timestep simulation produces identical state at 60 FPS and 20 FPS",
+      "suite": "core",
+      "status": "PASS",
+      "detail": "t60=5.00s, t20=5.00s, unit0.x match"
+    },
+    {
+      "id": "TEST-08",
+      "name": "Phase B/C: Ground units clamp outside deep river and cross smoothly via central bridge",
+      "suite": "core",
+      "status": "PASS",
+      "detail": "Crossed from side -1 to 1 (distToDest=3.9)"
+    },
+    {
+      "id": "TEST-09",
+      "name": "WorldAdapter: Maps 2D (x,y) to 3D (x, elevation, z) and interpolates between ticks",
+      "suite": "core",
+      "status": "PASS",
+      "detail": "Bridge 3D=(600, 3.5, 400), mid-tick interp=(130, 240)"
+    },
+    {
+      "id": "TEST-10",
+      "name": "Victory / Defeat: Destroying both hostile HQs triggers victory; player HQ triggers defeat",
+      "suite": "core",
+      "status": "PASS",
+      "detail": "Victory after both hostile HQs destroyed; Defeat when Player HQ destroyed"
+    },
+    {
+      "id": "TEST-10b",
+      "name": "Faction palette numeric colors remain numbers (renderer-agnostic)",
+      "suite": "core",
+      "status": "PASS",
+      "detail": "FACTION_COLORS palettes validated"
+    },
+    {
+      "id": "TEST-11",
+      "name": "R2 Blocker 2 & 3: No composeEuler(); Matrix4.compose uses Quaternion; InstancedMesh.setColorAt requires THREE.Color",
+      "suite": "shim",
+      "status": "PASS",
+      "detail": "Shim API compatible; REVISION identifies offline shim; IS_OFFICIAL_THREE=false"
+    },
+    {
+      "id": "TEST-12",
+      "name": "Offline standalone IIFE in mocked DOM: hardware instancing & mesh count audit",
+      "suite": "offline",
+      "status": "PASS",
+      "detail": "Units=26, Buildings=12, visibleInstancedMeshes=29, visibleNonInstancedMeshes=4, totalActiveInstances=297"
+    }
+  ]
+}

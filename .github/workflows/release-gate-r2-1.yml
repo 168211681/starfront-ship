@@ -1,0 +1,97 @@
+name: STARFRONT 3D — R2.1 Release Gate CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "'repair-lockfile' (deliver lockfile artifact for review) or 'verify-gate' (clean checkout npm ci + full verification)"
+        required: true
+        default: 'verify-gate'
+        type: choice
+        options:
+          - repair-lockfile
+          - verify-gate
+
+permissions:
+  contents: read
+
+jobs:
+  repair-lockfile:
+    name: "Step 1: Repair package-lock.json via Official npm Registry"
+    if: ${{ github.event.inputs.mode == 'repair-lockfile' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pinned Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Remove offline local shim and regenerate complete package-lock.json
+        run: |
+          rm -rf node_modules
+          npm install --package-lock-only --registry=https://registry.npmjs.org
+          git diff package-lock.json > lockfile-repair.diff || true
+
+      - name: Upload repaired package-lock.json separately for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: r2-1-repaired-lockfile-for-review
+          path: |
+            package-lock.json
+            lockfile-repair.diff
+          retention-days: 30
+
+  verify-release-gate:
+    name: "Step 2: Clean Checkout Verification & Official Three.js Proof"
+    if: ${{ github.event.inputs.mode == 'verify-gate' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Clean checkout
+        uses: actions/checkout@v4
+        with:
+          clean: true
+
+      - name: Setup pinned Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Chromium for headless WebGL2 browser verification
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser || sudo apt-get install -y chromium
+          which chromium || which chromium-browser || which google-chrome
+
+      - name: Install exact dependencies from lockfile (npm ci)
+        run: npm ci
+
+      - name: TypeScript typecheck (npx --no-install tsc --noEmit)
+        run: npx --no-install tsc --noEmit
+
+      - name: Vite production build (npm run build:vite)
+        run: npm run build:vite
+
+      - name: Verify Official three@0.160.0 Import Graph & Package Resolution
+        run: |
+          npm ls three
+          node scripts/verify-official-three.mjs | tee artifacts-official-three-proof.json
+
+      - name: Run deterministic Game Core & Adapter tests
+        run: node tests/run-tests.mjs
+
+      - name: Run real headless Chromium WebGL2 browser integration & HUD tests
+        run: node tests/browser-verify.mjs --dist-only
+
+      - name: Upload R2.1 CI Verification Evidence & Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: r2-1-ci-verification-evidence
+          path: |
+            dist/
+            artifacts/
+            artifacts-official-three-proof.json
+          retention-days: 30

@@ -1,0 +1,13 @@
+{
+  "generatedAt": "2026-10-23T11:57:24.925Z",
+  "artifact": "standalone-offline-shim",
+  "usedOfficialThree": false,
+  "usedCustomShim": true,
+  "shimSourcePath": "src/vendor/three-webgl2.js",
+  "isolatedShimCopy": "dist/offline-shim/three",
+  "standaloneHtml": "dist/standalone-shim.html",
+  "standaloneJs": "dist/starfront-3d-slice.js",
+  "coreBundle": "dist/core-bundle.mjs",
+  "nodeModulesThreeUntouched": true,
+  "releaseGateNote": "Standalone shim artifacts are for offline/mocked-DOM tests only. Official R2.1 production proof requires npm run build:vite."
+}

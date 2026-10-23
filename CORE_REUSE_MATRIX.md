@@ -1,0 +1,18 @@
+# CORE REUSE MATRIX — STARFRONT 3D VERTICAL SLICE 001
+
+This matrix documents how each system from the original 10,988-line 2D prototype was handled during the Vertical Slice 001 migration.
+
+| System / Module | Status | Source Location in 3D Slice | Engineering Notes |
+| :--- | :--- | :--- | :--- |
+| **Unit & Building Spec Definitions** (`UNIT_SPECS`, `BUILDING_SPECS`) | **Reused** | `src/core/specs.ts` | Preserves original costs, supply weights, HP, shields, speeds, effective/max ranges, damage, and reload times for `marine`, `trooper`, `apc`, `tank`, `hq`, `barracks`, `factory`, and `turret`, while retaining full definitions for deferred units. |
+| **Phase A1: Fighter Sortie Validation** (`canLaunchFighterSortie`, `scrambleFighterInterceptors`) | **Reused & Repaired** | `src/core/simulation.ts` | Enforces `airfield` + `radar` prerequisites, `180` GDP cost, and `11s` cooldown across all launch paths (including emergency intercept). |
+| **Phase A2: 3-Faction Outpost Capture** (`player`, `enemy`, `bot2`) | **Reused & Repaired** | `src/core/simulation.ts` | Tracks `owner`, `capturingTeam`, `progress` (`0..100`), and `contested` state independently for all three factions. |
+| **Phase A3: Resource Sanitization & Bot 2 Economy** (`sanitizeResource`) | **Reused & Repaired** | `src/core/simulation.ts` | Replaces `state.bot2Crystals \|\| 400` with `sanitizeResource(val, 0)` so a legitimate `0` balance never grants free credits and `NaN`/negative values are prevented. |
+| **Phase A4: Fixed-Timestep Simulation Loop** (`stepSimulation`, `FIXED_DT = 1/60`) | **Reused & Repaired** | `src/core/simulation.ts` | Decouples simulation progression, cooldowns, and fire rates from rendering FPS (`MAX_CATCHUP_STEPS = 24`). |
+| **Spatial Partitioning Grids** (`rebuildSpatialGrid`, `rebuildCollisionGrid`) | **Reused & Adapted** | `src/core/simulation.ts` | Reuses the zero-allocation spatial hash grid pattern scaled to the `1200 × 800` vertical slice map. |
+| **Bridge Pathing & River Bank Clamping** (`getRiverTelemetry`, `getNearestBridgeWaypoint`) | **Reused & Adapted** | `src/core/simulation.ts` | Prevents ground units from wading across deep river water and routes cross-river movement over the central armored bridge without midpoint oscillation. |
+| **Combined-Arms & High-Ground Damage Multiplier** (`getTacticalDamageMultiplier`) | **Reused** | `src/core/simulation.ts` | Preserves anti-armor (`trooper` vs `tank`/`apc`), anti-infantry (`marine`/`apc`), and high-ground elevation (`+22%` range & damage) rules. |
+| **2D-to-3D World Coordinate Adapter** (`WorldAdapter`) | **New (Bridge Layer)** | `src/adapter/worldAdapter.ts` | Maps `(game.x, game.y)` to Three.js `(x, y, z)` and interpolates positions and hull/turret angles between fixed ticks. |
+| **Three.js WebGL2 Scene & Low-Poly Models** (`BattlefieldScene3D`, `LowPolyModelFactory`) | **Rewritten (2D Canvas → 3D WebGL2)** | `src/render/models3d.ts`, `src/render/scene3d.ts` | Replaces 2D Canvas drawing calls with shared-geometry Three.js low-poly meshes, orthographic tactical camera, and pooled 3D particles. |
+| **Pointer & Multi-Touch Raycast Controller** (`InputController3D`) | **Adapted for 3D** | `src/input/inputController.ts` | Preserves multi-touch pointer ID guard while upgrading screen-to-world picking to Three.js raycasting and focal-point pinch zoom. |
+| **Full 7800 × 5400 Mega Map, Air Warfare, Orbital Strike, 155mm Artillery FOB, SEAL Heli Raid, HOI4 Laws** | **Deferred (Per Stop Condition)** | Retained in `src/core/specs.ts` & original 2D HTML | Explicitly deferred from 3D visual integration in Vertical Slice 001 per mission stop conditions. |
