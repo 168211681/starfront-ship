@@ -1,0 +1,1242 @@
+{
+  "startedAt": "2026-10-23T14:08:24.820Z",
+  "threeRevision": "160",
+  "touchAction": {
+    "html": "none",
+    "body": "none",
+    "row": "auto",
+    "canvas": "none",
+    "rowScrollWidth": 557,
+    "rowClientWidth": 386,
+    "rowScrollLeft": 0,
+    "docScrollW": 402,
+    "docClientW": 402
+  },
+  "baseline": {
+    "running": true,
+    "paused": false,
+    "tacticalPause": false,
+    "selected": 0,
+    "players": [
+      {
+        "id": 14,
+        "type": "marine",
+        "x": 291.5,
+        "y": 610.3,
+        "state": "idle",
+        "selected": false,
+        "targetX": 291.5,
+        "targetY": 610.3
+      },
+      {
+        "id": 15,
+        "type": "marine",
+        "x": 313,
+        "y": 624.7,
+        "state": "idle",
+        "selected": false,
+        "targetX": 313,
+        "targetY": 624.7
+      },
+      {
+        "id": 16,
+        "type": "marine",
+        "x": 340.8,
+        "y": 605.2,
+        "state": "idle",
+        "selected": false,
+        "targetX": 340.8,
+        "targetY": 605.2
+      },
+      {
+        "id": 17,
+        "type": "trooper",
+        "x": 274.3,
+        "y": 584.6,
+        "state": "idle",
+        "selected": false,
+        "targetX": 274.3,
+        "targetY": 584.6
+      },
+      {
+        "id": 18,
+        "type": "trooper",
+        "x": 302,
+        "y": 590,
+        "state": "idle",
+        "selected": false,
+        "targetX": 306.1,
+        "targetY": 574.8
+      },
+      {
+        "id": 19,
+        "type": "apc",
+        "x": 356.1,
+        "y": 574.8,
+        "state": "idle",
+        "selected": false,
+        "targetX": 356.1,
+        "targetY": 574.8
+      },
+      {
+        "id": 20,
+        "type": "apc",
+        "x": 385.5,
+        "y": 598.6,
+        "state": "idle",
+        "selected": false,
+        "targetX": 385.5,
+        "targetY": 598.6
+      },
+      {
+        "id": 21,
+        "type": "tank",
+        "x": 242.3,
+        "y": 535,
+        "state": "idle",
+        "selected": false,
+        "targetX": 242.3,
+        "targetY": 535
+      },
+      {
+        "id": 22,
+        "type": "tank",
+        "x": 287.8,
+        "y": 522.8,
+        "state": "idle",
+        "selected": false,
+        "targetX": 287.8,
+        "targetY": 522.8
+      },
+      {
+        "id": 23,
+        "type": "tank",
+        "x": 330.3,
+        "y": 530.2,
+        "state": "idle",
+        "selected": false,
+        "targetX": 328.2,
+        "targetY": 533.4
+      }
+    ],
+    "renderedInfantry0": {
+      "count": 14,
+      "i0": [
+        291.5,
+        9.5,
+        610.3
+      ]
+    },
+    "toast": "STARFRONT 3D ready",
+    "mode": "select",
+    "time": 0.53
+  },
+  "afterArmy": {
+    "button": {
+      "x": 147.71875,
+      "y": 496,
+      "w": 52.6875,
+      "h": 40
+    },
+    "snap": {
+      "running": true,
+      "paused": false,
+      "tacticalPause": false,
+      "selected": 10,
+      "players": [
+        {
+          "id": 14,
+          "type": "marine",
+          "x": 291.5,
+          "y": 610.3,
+          "state": "idle",
+          "selected": true,
+          "targetX": 291.5,
+          "targetY": 610.3
+        },
+        {
+          "id": 15,
+          "type": "marine",
+          "x": 313,
+          "y": 624.7,
+          "state": "idle",
+          "selected": true,
+          "targetX": 313,
+          "targetY": 624.7
+        },
+        {
+          "id": 16,
+          "type": "marine",
+          "x": 340.8,
+          "y": 605.2,
+          "state": "idle",
+          "selected": true,
+          "targetX": 340.8,
+          "targetY": 605.2
+        },
+        {
+          "id": 17,
+          "type": "trooper",
+          "x": 274.3,
+          "y": 584.6,
+          "state": "idle",
+          "selected": true,
+          "targetX": 274.3,
+          "targetY": 584.6
+        },
+        {
+          "id": 18,
+          "type": "trooper",
+          "x": 302,
+          "y": 590,
+          "state": "idle",
+          "selected": true,
+          "targetX": 306.1,
+          "targetY": 574.8
+        },
+        {
+          "id": 19,
+          "type": "apc",
+          "x": 356.1,
+          "y": 574.8,
+          "state": "idle",
+          "selected": true,
+          "targetX": 356.1,
+          "targetY": 574.8
+        },
+        {
+          "id": 20,
+          "type": "apc",
+          "x": 385.5,
+          "y": 598.6,
+          "state": "idle",
+          "selected": true,
+          "targetX": 385.5,
+          "targetY": 598.6
+        },
+        {
+          "id": 21,
+          "type": "tank",
+          "x": 242.3,
+          "y": 535,
+          "state": "idle",
+          "selected": true,
+          "targetX": 242.3,
+          "targetY": 535
+        },
+        {
+          "id": 22,
+          "type": "tank",
+          "x": 287.8,
+          "y": 522.8,
+          "state": "idle",
+          "selected": true,
+          "targetX": 287.8,
+          "targetY": 522.8
+        },
+        {
+          "id": 23,
+          "type": "tank",
+          "x": 330.3,
+          "y": 530.2,
+          "state": "idle",
+          "selected": true,
+          "targetX": 328.2,
+          "targetY": 533.4
+        }
+      ],
+      "renderedInfantry0": {
+        "count": 14,
+        "i0": [
+          291.5,
+          9.5,
+          610.3
+        ]
+      },
+      "toast": "Selected all 10 friendly combat units",
+      "mode": "select",
+      "time": 0.9
+    },
+    "log": [
+      {
+        "kind": "mark",
+        "name": "army-tap",
+        "t": 1008
+      },
+      {
+        "kind": "ptr",
+        "type": "pointerdown",
+        "pointerId": 2,
+        "pointerType": "touch",
+        "button": 0,
+        "buttons": 1,
+        "clientX": 148,
+        "clientY": 496,
+        "cancelable": true,
+        "defaultPrevented": false,
+        "target": "btnSelectAll",
+        "t": 1064
+      },
+      {
+        "kind": "touch",
+        "type": "touchstart",
+        "clientX": 0,
+        "clientY": 0,
+        "cancelable": false,
+        "defaultPrevented": false,
+        "target": "btnSelectAll",
+        "t": 1064
+      },
+      {
+        "kind": "ptr",
+        "type": "gotpointercapture",
+        "pointerId": 2,
+        "pointerType": "touch",
+        "button": 0,
+        "buttons": 0,
+        "clientX": 148,
+        "clientY": 496,
+        "cancelable": false,
+        "defaultPrevented": false,
+        "target": "btnSelectAll",
+        "t": 1177
+      },
+      {
+        "kind": "ptr",
+        "type": "pointerup",
+        "pointerId": 2,
+        "pointerType": "touch",
+        "button": 0,
+        "buttons": 0,
+        "clientX": 148,
+        "clientY": 496,
+        "cancelable": true,
+        "defaultPrevented": false,
+        "target": "btnSelectAll",
+        "t": 1177
+      },
+      {
+        "kind": "ptr",
+        "type": "lostpointercapture",
+        "pointerId": 2,
+        "pointerType": "touch",
+        "button": 0,
+        "buttons": 0,
+        "clientX": 148,
+        "clientY": 496,
+        "cancelable": false,
+        "defaultPrevented": false,
+        "target": "btnSelectAll",
+        "t": 1177
+      },
+      {
+        "kind": "touch",
+        "type": "touchend",
+        "clientX": 0,
+        "clientY": 0,
+        "cancelable": true,
+        "defaultPrevented": false,
+        "target": "btnSelectAll",
+        "t": 1177
+      },
+      {
+        "kind": "click",
+        "type": "click",
+        "pointerId": 2,
+        "pointerType": "touch",
+        "button": 0,
+        "buttons": 0,
+        "clientX": 148,
+        "clientY": 496,
+        "cancelable": true,
+        "defaultPrevented": false,
+        "target": "btnSelectAll",
+        "t": 1179
+      }
+    ]
+  },
+  "projection": {
+    "rect": {
+      "left": 0,
+      "top": 49,
+      "width": 402,
+      "height": 404
+    },
+    "screen": {
+      "x": 386.2661361225294,
+      "y": 184.82917858533477
+    },
+    "clientX": 386.2661361225294,
+    "clientY": 233.82917858533477,
+    "back": {
+      "x": 562.4748737341529,
+      "y": 0,
+      "z": 282.47487373415294
+    },
+    "game": {
+      "x": 562.4748737341529,
+      "y": 282.47487373415294
+    },
+    "inside": true
+  },
+  "zeroDrift": {
+    "immediate": {
+      "running": true,
+      "paused": false,
+      "tacticalPause": false,
+      "selected": 10,
+      "players": [
+        {
+          "id": 14,
+          "type": "marine",
+          "x": 294.5,
+          "y": 607.8,
+          "state": "move",
+          "selected": true,
+          "targetX": 570.2,
+          "targetY": 375.4
+        },
+        {
+          "id": 15,
+          "type": "marine",
+          "x": 314.6,
+          "y": 621.2,
+          "state": "move",
+          "selected": true,
+          "targetX": 469.4,
+          "targetY": 290.1
+        },
+        {
+          "id": 16,
+          "type": "marine",
+          "x": 343.8,
+          "y": 602.7,
+          "state": "move",
+          "selected": true,
+          "targetX": 572.7,
+          "targetY": 406.4
+        },
+        {
+          "id": 17,
+          "type": "trooper",
+          "x": 276.3,
+          "y": 581.1,
+          "state": "move",
+          "selected": true,
+          "targetX": 438.4,
+          "targetY": 292.7
+        },
+        {
+          "id": 18,
+          "type": "trooper",
+          "x": 306.2,
+          "y": 590.8,
+          "state": "move",
+          "selected": true,
+          "targetX": 575.3,
+          "targetY": 437.4
+        },
+        {
+          "id": 19,
+          "type": "apc",
+          "x": 359.2,
+          "y": 571.5,
+          "state": "move",
+          "selected": true,
+          "targetX": 567.6,
+          "targetY": 344.4
+        },
+        {
+          "id": 20,
+          "type": "apc",
+          "x": 387.1,
+          "y": 594.3,
+          "state": "move",
+          "selected": true,
+          "targetX": 500.5,
+          "targetY": 287.5
+        },
+        {
+          "id": 21,
+          "type": "tank",
+          "x": 245.1,
+          "y": 534,
+          "state": "move",
+          "selected": true,
+          "targetX": 562.5,
+          "targetY": 282.4
+        },
+        {
+          "id": 22,
+          "type": "tank",
+          "x": 290.7,
+          "y": 521.5,
+          "state": "move",
+          "selected": true,
+          "targetX": 565,
+          "targetY": 313.4
+        },
+        {
+          "id": 23,
+          "type": "tank",
+          "x": 333.2,
+          "y": 527.7,
+          "state": "move",
+          "selected": true,
+          "targetX": 531.5,
+          "targetY": 285
+        }
+      ],
+      "renderedInfantry0": {
+        "count": 14,
+        "i0": [
+          293.5,
+          9.5,
+          608.6
+        ]
+      },
+      "toast": "Moving 10 units to (562, 282)",
+      "mode": "select",
+      "time": 1.1
+    },
+    "after700ms": {
+      "running": true,
+      "paused": false,
+      "tacticalPause": false,
+      "selected": 10,
+      "players": [
+        {
+          "id": 14,
+          "type": "marine",
+          "x": 330.2,
+          "y": 582.4,
+          "state": "move",
+          "selected": true,
+          "targetX": 570.2,
+          "targetY": 375.4
+        },
+        {
+          "id": 15,
+          "type": "marine",
+          "x": 350,
+          "y": 581.7,
+          "state": "move",
+          "selected": true,
+          "targetX": 469.4,
+          "targetY": 290.1
+        },
+        {
+          "id": 16,
+          "type": "marine",
+          "x": 384,
+          "y": 568.9,
+          "state": "move",
+          "selected": true,
+          "targetX": 572.7,
+          "targetY": 406.4
+        },
+        {
+          "id": 17,
+          "type": "trooper",
+          "x": 296.6,
+          "y": 528.5,
+          "state": "move",
+          "selected": true,
+          "targetX": 438.4,
+          "targetY": 292.7
+        },
+        {
+          "id": 18,
+          "type": "trooper",
+          "x": 363.3,
+          "y": 565.5,
+          "state": "move",
+          "selected": true,
+          "targetX": 575.3,
+          "targetY": 437.4
+        },
+        {
+          "id": 19,
+          "type": "apc",
+          "x": 395.5,
+          "y": 521,
+          "state": "move",
+          "selected": true,
+          "targetX": 567.6,
+          "targetY": 344.4
+        },
+        {
+          "id": 20,
+          "type": "apc",
+          "x": 413.6,
+          "y": 542.3,
+          "state": "move",
+          "selected": true,
+          "targetX": 500.5,
+          "targetY": 287.5
+        },
+        {
+          "id": 21,
+          "type": "tank",
+          "x": 275.6,
+          "y": 511.5,
+          "state": "move",
+          "selected": true,
+          "targetX": 562.5,
+          "targetY": 282.4
+        },
+        {
+          "id": 22,
+          "type": "tank",
+          "x": 328.5,
+          "y": 506.7,
+          "state": "move",
+          "selected": true,
+          "targetX": 565,
+          "targetY": 313.4
+        },
+        {
+          "id": 23,
+          "type": "tank",
+          "x": 359.1,
+          "y": 496.5,
+          "state": "move",
+          "selected": true,
+          "targetX": 531.5,
+          "targetY": 285
+        }
+      ],
+      "renderedInfantry0": {
+        "count": 14,
+        "i0": [
+          330.2,
+          9.5,
+          582.4
+        ]
+      },
+      "toast": "Moving 10 units to (562, 282)",
+      "mode": "select",
+      "time": 1.77
+    },
+    "log": [
+      {
+        "kind": "mark",
+        "name": "zero-drift",
+        "t": 1384
+      },
+      {
+        "kind": "ptr",
+        "type": "pointerdown",
+        "pointerId": 3,
+        "pointerType": "touch",
+        "button": 0,
+        "buttons": 1,
+        "clientX": 386,
+        "clientY": 234,
+        "cancelable": true,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 1406
+      },
+      {
+        "kind": "touch",
+        "type": "touchstart",
+        "clientX": 0,
+        "clientY": 0,
+        "cancelable": true,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 1406
+      },
+      {
+        "kind": "ptr",
+        "type": "gotpointercapture",
+        "pointerId": 3,
+        "pointerType": "touch",
+        "button": 0,
+        "buttons": 0,
+        "clientX": 386,
+        "clientY": 234,
+        "cancelable": false,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 1494
+      },
+      {
+        "kind": "ptr",
+        "type": "pointerup",
+        "pointerId": 3,
+        "pointerType": "touch",
+        "button": 0,
+        "buttons": 0,
+        "clientX": 386,
+        "clientY": 234,
+        "cancelable": true,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 1494
+      },
+      {
+        "kind": "ptr",
+        "type": "lostpointercapture",
+        "pointerId": 3,
+        "pointerType": "touch",
+        "button": 0,
+        "buttons": 0,
+        "clientX": 386,
+        "clientY": 234,
+        "cancelable": false,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 1495
+      },
+      {
+        "kind": "touch",
+        "type": "touchend",
+        "clientX": 0,
+        "clientY": 0,
+        "cancelable": true,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 1495
+      },
+      {
+        "kind": "click",
+        "type": "click",
+        "pointerId": 3,
+        "pointerType": "touch",
+        "button": 0,
+        "buttons": 0,
+        "clientX": 386,
+        "clientY": 234,
+        "cancelable": true,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 1496
+      }
+    ],
+    "positionDelta": {
+      "sum": 545.7,
+      "max": 66.7,
+      "rows": [
+        {
+          "id": 14,
+          "d": 47.7,
+          "from": [
+            291.5,
+            610.3
+          ],
+          "to": [
+            330.2,
+            582.4
+          ],
+          "state": "move"
+        },
+        {
+          "id": 15,
+          "d": 56.7,
+          "from": [
+            313,
+            624.7
+          ],
+          "to": [
+            350,
+            581.7
+          ],
+          "state": "move"
+        },
+        {
+          "id": 16,
+          "d": 56.4,
+          "from": [
+            340.8,
+            605.2
+          ],
+          "to": [
+            384,
+            568.9
+          ],
+          "state": "move"
+        },
+        {
+          "id": 17,
+          "d": 60.4,
+          "from": [
+            274.3,
+            584.6
+          ],
+          "to": [
+            296.6,
+            528.5
+          ],
+          "state": "move"
+        },
+        {
+          "id": 18,
+          "d": 66,
+          "from": [
+            302,
+            590
+          ],
+          "to": [
+            363.3,
+            565.5
+          ],
+          "state": "move"
+        },
+        {
+          "id": 19,
+          "d": 66.7,
+          "from": [
+            356.1,
+            574.8
+          ],
+          "to": [
+            395.5,
+            521
+          ],
+          "state": "move"
+        },
+        {
+          "id": 20,
+          "d": 62.9,
+          "from": [
+            385.5,
+            598.6
+          ],
+          "to": [
+            413.6,
+            542.3
+          ],
+          "state": "move"
+        },
+        {
+          "id": 21,
+          "d": 40.8,
+          "from": [
+            242.3,
+            535
+          ],
+          "to": [
+            275.6,
+            511.5
+          ],
+          "state": "move"
+        },
+        {
+          "id": 22,
+          "d": 43.8,
+          "from": [
+            287.8,
+            522.8
+          ],
+          "to": [
+            328.5,
+            506.7
+          ],
+          "state": "move"
+        },
+        {
+          "id": 23,
+          "d": 44.3,
+          "from": [
+            330.3,
+            530.2
+          ],
+          "to": [
+            359.1,
+            496.5
+          ],
+          "state": "move"
+        }
+      ]
+    },
+    "orderEvidence": [
+      {
+        "id": 14,
+        "selected": true,
+        "state": "move",
+        "prevState": "idle",
+        "targetChanged": true,
+        "tx": 570.2,
+        "ty": 375.4
+      },
+      {
+        "id": 15,
+        "selected": true,
+        "state": "move",
+        "prevState": "idle",
+        "targetChanged": true,
+        "tx": 469.4,
+        "ty": 290.1
+      },
+      {
+        "id": 16,
+        "selected": true,
+        "state": "move",
+        "prevState": "idle",
+        "targetChanged": true,
+        "tx": 572.7,
+        "ty": 406.4
+      },
+      {
+        "id": 17,
+        "selected": true,
+        "state": "move",
+        "prevState": "idle",
+        "targetChanged": true,
+        "tx": 438.4,
+        "ty": 292.7
+      },
+      {
+        "id": 18,
+        "selected": true,
+        "state": "move",
+        "prevState": "idle",
+        "targetChanged": true,
+        "tx": 575.3,
+        "ty": 437.4
+      },
+      {
+        "id": 19,
+        "selected": true,
+        "state": "move",
+        "prevState": "idle",
+        "targetChanged": true,
+        "tx": 567.6,
+        "ty": 344.4
+      },
+      {
+        "id": 20,
+        "selected": true,
+        "state": "move",
+        "prevState": "idle",
+        "targetChanged": true,
+        "tx": 500.5,
+        "ty": 287.5
+      },
+      {
+        "id": 21,
+        "selected": true,
+        "state": "move",
+        "prevState": "idle",
+        "targetChanged": true,
+        "tx": 562.5,
+        "ty": 282.4
+      },
+      {
+        "id": 22,
+        "selected": true,
+        "state": "move",
+        "prevState": "idle",
+        "targetChanged": true,
+        "tx": 565,
+        "ty": 313.4
+      },
+      {
+        "id": 23,
+        "selected": true,
+        "state": "move",
+        "prevState": "idle",
+        "targetChanged": true,
+        "tx": 531.5,
+        "ty": 285
+      }
+    ]
+  },
+  "drift22": {
+    "proj2": {
+      "clientX": 386.2661361225295,
+      "clientY": 319.6205882352941,
+      "inside": true
+    },
+    "before": {
+      "selected": 10,
+      "states": [
+        "move",
+        "move",
+        "move",
+        "move",
+        "move",
+        "move",
+        "move",
+        "move",
+        "move",
+        "move"
+      ]
+    },
+    "after": {
+      "selected": 0,
+      "toast": "Cleared selection",
+      "states": [
+        {
+          "id": 14,
+          "state": "move",
+          "selected": false,
+          "tx": 570.2,
+          "ty": 375.4
+        },
+        {
+          "id": 15,
+          "state": "move",
+          "selected": false,
+          "tx": 469.4,
+          "ty": 290.1
+        },
+        {
+          "id": 16,
+          "state": "move",
+          "selected": false,
+          "tx": 572.7,
+          "ty": 406.4
+        },
+        {
+          "id": 17,
+          "state": "move",
+          "selected": false,
+          "tx": 438.4,
+          "ty": 292.7
+        },
+        {
+          "id": 18,
+          "state": "move",
+          "selected": false,
+          "tx": 575.3,
+          "ty": 437.4
+        },
+        {
+          "id": 19,
+          "state": "move",
+          "selected": false,
+          "tx": 567.6,
+          "ty": 344.4
+        },
+        {
+          "id": 20,
+          "state": "move",
+          "selected": false,
+          "tx": 500.5,
+          "ty": 287.5
+        },
+        {
+          "id": 21,
+          "state": "move",
+          "selected": false,
+          "tx": 562.5,
+          "ty": 282.4
+        },
+        {
+          "id": 22,
+          "state": "move",
+          "selected": false,
+          "tx": 565,
+          "ty": 313.4
+        },
+        {
+          "id": 23,
+          "state": "move",
+          "selected": false,
+          "tx": 531.5,
+          "ty": 285
+        }
+      ]
+    },
+    "log": [
+      {
+        "kind": "mark",
+        "name": "drift-22",
+        "t": 2528
+      },
+      {
+        "kind": "ptr",
+        "type": "pointerdown",
+        "pointerId": 5,
+        "pointerType": "touch",
+        "button": 0,
+        "buttons": 1,
+        "clientX": 386,
+        "clientY": 320,
+        "cancelable": true,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 2570
+      },
+      {
+        "kind": "touch",
+        "type": "touchstart",
+        "clientX": 0,
+        "clientY": 0,
+        "cancelable": true,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 2570
+      },
+      {
+        "kind": "ptr",
+        "type": "gotpointercapture",
+        "pointerId": 5,
+        "pointerType": "touch",
+        "button": -1,
+        "buttons": 1,
+        "clientX": 391,
+        "clientY": 323,
+        "cancelable": false,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 2678
+      },
+      {
+        "kind": "ptr",
+        "type": "pointermove",
+        "pointerId": 5,
+        "pointerType": "touch",
+        "button": -1,
+        "buttons": 1,
+        "clientX": 391,
+        "clientY": 323,
+        "cancelable": true,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 2678
+      },
+      {
+        "kind": "ptr",
+        "type": "pointermove",
+        "pointerId": 5,
+        "pointerType": "touch",
+        "button": -1,
+        "buttons": 1,
+        "clientX": 395,
+        "clientY": 326,
+        "cancelable": true,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 2749
+      },
+      {
+        "kind": "ptr",
+        "type": "pointermove",
+        "pointerId": 5,
+        "pointerType": "touch",
+        "button": -1,
+        "buttons": 1,
+        "clientX": 400,
+        "clientY": 329,
+        "cancelable": true,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 2819
+      },
+      {
+        "kind": "touch",
+        "type": "touchmove",
+        "clientX": 0,
+        "clientY": 0,
+        "cancelable": true,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 2819
+      },
+      {
+        "kind": "ptr",
+        "type": "pointermove",
+        "pointerId": 5,
+        "pointerType": "touch",
+        "button": -1,
+        "buttons": 1,
+        "clientX": 404,
+        "clientY": 332,
+        "cancelable": true,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 2888
+      },
+      {
+        "kind": "touch",
+        "type": "touchmove",
+        "clientX": 0,
+        "clientY": 0,
+        "cancelable": false,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 2888
+      },
+      {
+        "kind": "ptr",
+        "type": "pointerup",
+        "pointerId": 5,
+        "pointerType": "touch",
+        "button": 0,
+        "buttons": 0,
+        "clientX": 404,
+        "clientY": 332,
+        "cancelable": true,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 2954
+      },
+      {
+        "kind": "ptr",
+        "type": "lostpointercapture",
+        "pointerId": 5,
+        "pointerType": "touch",
+        "button": 0,
+        "buttons": 0,
+        "clientX": 404,
+        "clientY": 332,
+        "cancelable": false,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 2955
+      },
+      {
+        "kind": "touch",
+        "type": "touchend",
+        "clientX": 0,
+        "clientY": 0,
+        "cancelable": false,
+        "defaultPrevented": false,
+        "target": "battlefieldCanvas3D",
+        "t": 2955
+      }
+    ]
+  },
+  "pointerCancelDrop": {
+    "beforeSelected": 10,
+    "cancelResult": {
+      "selected": 10,
+      "moving": 10,
+      "log": [
+        {
+          "kind": "ptr",
+          "type": "pointerdown",
+          "pointerId": 7,
+          "pointerType": "touch",
+          "button": 0,
+          "buttons": 1,
+          "clientX": 221,
+          "clientY": 231,
+          "cancelable": true,
+          "defaultPrevented": false,
+          "target": "battlefieldCanvas3D",
+          "t": 3042
+        }
+      ]
+    }
+  },
+  "dockSwipe": {
+    "before": {
+      "x": 285.92,
+      "y": 540,
+      "scrollLeft": 0,
+      "scrollWidth": 557,
+      "clientWidth": 386
+    },
+    "after": {
+      "scrollLeft": 143,
+      "docScrollLeft": 0,
+      "overflowX": false
+    }
+  },
+  "exceptions": []
+}

@@ -1,0 +1,251 @@
+{
+  "gate": "R2.2.1",
+  "method": "Chrome CDP Input.dispatchTouchEvent on portrait 402x566, micro-resize 402x554, landscape 844x390",
+  "threeRevision": "160",
+  "beforeFailure": "R2.2 dist: 22px finger drift cleared selection and never called issueMoveOrder. See artifacts/r221-touch-before.json drift22.",
+  "touch": {
+    "test1": {
+      "armySelected": 10,
+      "destInside": true,
+      "ordersIncreased": true,
+      "lastMoveCount": 10,
+      "moving": 10,
+      "stillSelected": 10,
+      "toast": "Moving 10 units to (603, 273)",
+      "delta": {
+        "sum": 492.9,
+        "max": 58.9
+      },
+      "renderedMoved": true,
+      "renderedBefore": [
+        245.7,
+        537.1
+      ],
+      "renderedAfter": [
+        282.7,
+        512.2
+      ],
+      "hit": {
+        "x": 603,
+        "y": 273,
+        "failed": false
+      },
+      "sim": {
+        "running": true,
+        "paused": false,
+        "tacticalPause": false
+      },
+      "positionsBefore": [
+        [
+          14,
+          295,
+          610
+        ],
+        [
+          15,
+          314,
+          620
+        ],
+        [
+          16,
+          340,
+          600
+        ],
+        [
+          17,
+          280,
+          584
+        ],
+        [
+          18,
+          310,
+          591
+        ],
+        [
+          19,
+          356,
+          570
+        ],
+        [
+          20,
+          390,
+          597
+        ],
+        [
+          21,
+          248,
+          536
+        ],
+        [
+          22,
+          290,
+          517
+        ],
+        [
+          23,
+          337,
+          531
+        ]
+      ],
+      "positionsAfter": [
+        [
+          14,
+          331,
+          582
+        ],
+        [
+          15,
+          351,
+          584
+        ],
+        [
+          16,
+          382,
+          565
+        ],
+        [
+          17,
+          287,
+          539
+        ],
+        [
+          18,
+          361,
+          566
+        ],
+        [
+          19,
+          398,
+          529
+        ],
+        [
+          20,
+          419,
+          547
+        ],
+        [
+          21,
+          283,
+          512
+        ],
+        [
+          22,
+          326,
+          504
+        ],
+        [
+          23,
+          372,
+          513
+        ]
+      ]
+    },
+    "test2": {
+      "selectedId": 14,
+      "selectedCount": 1,
+      "state": "move",
+      "delta": 52.5
+    },
+    "test3": {
+      "modeAfterAttack": "attackMove",
+      "modeAfterTap": "select",
+      "selectedBefore": 10,
+      "attackMoving": 9,
+      "delta": {
+        "sum": 483.5,
+        "max": 56.5
+      },
+      "toast": "Attack-Move ordered for 10 units",
+      "hit": {
+        "x": 403,
+        "y": 393,
+        "failed": false
+      },
+      "lastMoveCount": 10
+    },
+    "test4": {
+      "modeAfter": "pan",
+      "camDelta": 150.1,
+      "ordersBefore": 5,
+      "ordersAfterPan": 5,
+      "ordersAfterPinch": 5,
+      "zoomBefore": 1.05,
+      "zoomAfter": 2.4
+    },
+    "test5": {
+      "before": {
+        "scroll0": 0,
+        "scroll1": 0,
+        "retreatClipped": true,
+        "tankClipped": true,
+        "docScroll": 0,
+        "overflowX": false,
+        "touchActionRow": "pan-x",
+        "touchActionBody": "manipulation",
+        "touchActionCanvas": "none"
+      },
+      "after": {
+        "scroll0": 155,
+        "scroll1": 155,
+        "retreatVisible": true,
+        "docScroll": 0,
+        "overflowX": false
+      },
+      "retreatMoved": true,
+      "retreatToast": "Retreating selected squad to Aegis HQ"
+    },
+    "test6": {
+      "portraitInside": true,
+      "portraitErr": 0,
+      "microInside": true,
+      "microErr": 0,
+      "landInside": true,
+      "landErr": 36.9,
+      "landDelta": {
+        "sum": 491.9,
+        "max": 59.8
+      },
+      "landMoving": 10
+    },
+    "test7": {
+      "ordered": 10,
+      "pausedFlag": true,
+      "pausedDelta": {
+        "sum": 0,
+        "max": 0
+      },
+      "resumedFlag": false,
+      "resumeDelta": {
+        "sum": 383.4,
+        "max": 50.6
+      },
+      "running": true,
+      "paused": false
+    },
+    "pointerCancelTap": {
+      "moving": 10,
+      "cancelCount": 1,
+      "cancelCountBefore": 0,
+      "lastMove": 10,
+      "hit": [
+        532,
+        312
+      ]
+    },
+    "lostPointerUp": {
+      "used": "TouchEvent",
+      "touchClient": {
+        "x": 233.16000366210938,
+        "y": 218.67999267578125
+      },
+      "moving": 10,
+      "selected": 10,
+      "fallback": 1,
+      "lastMove": 10,
+      "hit": [
+        365,
+        432
+      ]
+    }
+  }
+}

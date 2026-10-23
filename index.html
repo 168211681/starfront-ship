@@ -21,7 +21,9 @@
       background-color: #060b16;
       color: #f8fafc;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      touch-action: none;
+      /* manipulation keeps double-tap zoom off without blocking descendant pan-x.
+         touch-action:none on html/body intersects with every scroller and stops the command dock on WebKit. */
+      touch-action: manipulation;
     }
     .app-shell {
       display: flex;
@@ -52,6 +54,8 @@
       flex: 1 1 auto;
       min-width: 0;
       scrollbar-width: none;
+      touch-action: pan-x;
+      -webkit-overflow-scrolling: touch;
     }
     .hud-pills::-webkit-scrollbar,
     .dock-scroll::-webkit-scrollbar {
@@ -281,6 +285,13 @@
       scrollbar-width: none;
       max-width: 100%;
       min-width: 0;
+      touch-action: pan-x;
+      -webkit-overflow-scrolling: touch;
+    }
+    #viewport3d,
+    #battlefieldCanvas3D {
+      touch-action: none;
+      -webkit-touch-callout: none;
     }
     #victoryModal {
       display: none;
@@ -423,6 +434,34 @@
           <div class="diag-row" style="grid-column: span 2;">
             <span class="diag-label">Viewport:</span>
             <span id="diagViewport" class="diag-val">0×0</span>
+          </div>
+          <div class="diag-row" style="grid-column: span 2;">
+            <span class="diag-label">Ptr dn/up/cancel:</span>
+            <span id="diagPointerCounts" class="diag-val">0/0/0</span>
+          </div>
+          <div class="diag-row">
+            <span class="diag-label">Mode:</span>
+            <span id="diagInputMode" class="diag-val">select</span>
+          </div>
+          <div class="diag-row">
+            <span class="diag-label">Selected:</span>
+            <span id="diagSelectedCount" class="diag-val">0</span>
+          </div>
+          <div class="diag-row" style="grid-column: span 2;">
+            <span class="diag-label">World hit:</span>
+            <span id="diagWorldHit" class="diag-val">—</span>
+          </div>
+          <div class="diag-row">
+            <span class="diag-label">Move orders:</span>
+            <span id="diagMoveOrders" class="diag-val">0</span>
+          </div>
+          <div class="diag-row">
+            <span class="diag-label">Pos delta:</span>
+            <span id="diagUnitDelta" class="diag-val">0</span>
+          </div>
+          <div class="diag-row" style="grid-column: span 2;">
+            <span class="diag-label">Sim:</span>
+            <span id="diagSimState" class="diag-val">running</span>
           </div>
         </div>
         <div class="diag-actions">

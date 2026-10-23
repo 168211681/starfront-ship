@@ -119,6 +119,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { runTouchGameplay } from './cdp-touch-gameplay.mjs';
 
 function resolveBrowserExecutable() {
   const candidates = [
@@ -252,6 +253,7 @@ async function verifyFixedBuild() {
       '--enable-webgl',
       '--enable-webgl2',
       '--ignore-gpu-blocklist',
+      '--touch-events=enabled',
       `--host-resolver-rules=MAP ${appHost} 127.0.0.1`,
       `--user-data-dir=${userDataDir}`,
       '--window-size=1440,900',
@@ -801,6 +803,8 @@ async function verifyFixedBuild() {
     const landscapeScreenshotPath = path.join(screenshotsDir, 'landscape-iphone.png');
     fs.writeFileSync(landscapeScreenshotPath, Buffer.from(landscapeShot.data, 'base64'));
 
+    const touchGameplay = await runTouchGameplay(cdp, evalExpr, screenshotsDir);
+
     // 10. Mobile Viewport (390x844 iPhone size) + Two-Finger Pinch Zoom & Pan Verification
     await cdp.send('Emulation.setDeviceMetricsOverride', {
       width: 390,
@@ -925,6 +929,7 @@ async function verifyFixedBuild() {
       resizeBefore,
       resizeAfter,
       landscapeCheck,
+      touchGameplay,
       diagHudCheck: {
         visible: diagHudCheck.visible,
         fields: diagHudCheck.fields,
@@ -947,7 +952,7 @@ async function verifyFixedBuild() {
 }
 
 console.log('==================================================================');
-console.log('STARFRONT 3D — HEADLESS CHROMIUM WEBGL2 VERIFICATION (GATE R2.2)');
+console.log('STARFRONT 3D — HEADLESS CHROMIUM WEBGL2 VERIFICATION (GATE R2.2.1)');
 console.log('==================================================================');
 
 const fixedReport = await verifyFixedBuild();
@@ -975,6 +980,60 @@ const resizeOk =
   fixedReport.resizeAfter.lastResize.applied === false &&
   fixedReport.resizeAfter.lastResize.reason === 'ignored-safari-chrome-micro-resize';
 
+function touchPass(t) {
+  if (!t || !t.test1 || !t.test2 || !t.test3 || !t.test4 || !t.test5 || !t.test6 || !t.test7) return false;
+  const t1 =
+    t.test1.armySelected >= 5 &&
+    t.test1.destInside === true &&
+    t.test1.ordersIncreased === true &&
+    t.test1.lastMoveCount > 0 &&
+    t.test1.stillSelected > 0 &&
+    t.test1.moving >= 5 &&
+    t.test1.delta.sum > 8 &&
+    t.test1.renderedMoved === true &&
+    t.test1.sim.running === true &&
+    t.test1.sim.paused === false &&
+    t.test1.sim.tacticalPause === false &&
+    t.test1.hit.failed === false;
+  const t2 = t.test2.selectedCount === 1 && t.test2.selectedId != null && t.test2.state === 'move' && t.test2.delta > 4;
+  const t3 = t.test3.modeAfterAttack === 'attackMove' && t.test3.attackMoving >= 5 && t.test3.delta.sum > 8;
+  const t4 =
+    t.test4.modeAfter === 'pan' &&
+    t.test4.camDelta > 5 &&
+    t.test4.ordersAfterPan === t.test4.ordersBefore &&
+    t.test4.ordersAfterPinch === t.test4.ordersBefore &&
+    t.test4.zoomAfter > t.test4.zoomBefore + 0.02;
+  const t5 =
+    t.test5.before.touchActionRow === 'pan-x' &&
+    t.test5.before.touchActionBody === 'manipulation' &&
+    t.test5.before.touchActionCanvas === 'none' &&
+    t.test5.after.scroll0 > 20 &&
+    t.test5.after.scroll1 > 20 &&
+    t.test5.after.docScroll === 0 &&
+    t.test5.after.overflowX === false &&
+    t.test5.retreatMoved === true;
+  const t6 =
+    t.test6.portraitInside === true &&
+    t.test6.portraitErr < 50 &&
+    t.test6.microInside === true &&
+    t.test6.microErr < 80 &&
+    t.test6.landInside === true &&
+    t.test6.landErr < 80 &&
+    t.test6.landMoving >= 5 &&
+    t.test6.landDelta.sum > 5;
+  const t7 =
+    t.test7.ordered >= 5 &&
+    t.test7.pausedFlag === true &&
+    t.test7.pausedDelta.sum < 4 &&
+    t.test7.resumedFlag === false &&
+    t.test7.resumeDelta.sum > 5 &&
+    t.test7.running === true &&
+    t.test7.paused === false;
+  const cancel = t.pointerCancelTap && t.pointerCancelTap.moving >= 5 && t.pointerCancelTap.cancelCount > t.pointerCancelTap.cancelCountBefore;
+  const lost = t.lostPointerUp && t.lostPointerUp.moving >= 5 && t.lostPointerUp.fallback > 0;
+  return t1 && t2 && t3 && t4 && t5 && t6 && t7 && cancel && lost;
+}
+
 const assertions = [
   ['0. Real Chromium executable & readiness verified', Boolean(fixedReport.browserExecutable?.bin && fixedReport.browserExecutable?.version && d.ready === true && d.firstFrameRendered === true && d.canonicalHarnessPresent === true)],
   ['0b. Official Three.js provenance (custom shim MUST fail R2.1 gate)', d.isCustomShim === false && typeof d.threeRevision === 'string' && !/offline|shim|webgl2/i.test(d.threeRevision)],
@@ -993,7 +1052,8 @@ const assertions = [
   ['13. Portrait 402×566 HUD stays inside the screen and the battlefield is the majority', portrait && portrait.vw === 402 && portrait.vh === 566 && portrait.overflowX === false && portrait.clipped.length === 0 && portrait.toastHits.length === 0 && portrait.battlefieldRatio >= 0.58 && portrait.canvasCount === 1 && portrait.sameCanvas === true && portrait.contextLost === false && portrait.isCustomShim === false],
   ['14. Diagnostic HUD starts collapsed and can expand then minimize', fixedReport.diagToggleCheck?.startedCollapsed === true && fixedReport.diagToggleCheck?.expanded === true && fixedReport.diagToggleCheck?.collapsedAgain === true],
   ['15. Safari chrome micro-resize does not reallocate the drawing buffer', resizeOk === true],
-  ['16. Landscape HUD fits, canvas stays initialized, official Three.js remains', land && land.vw === 844 && land.vh === 390 && land.overflowX === false && land.clipped.length === 0 && land.toastHits.length === 0 && land.battlefieldRatio >= 0.5 && land.canvasCount === 1 && land.sameCanvas === true && land.contextLost === false && land.isCustomShim === false]
+  ['16. Landscape HUD fits, canvas stays initialized, official Three.js remains', land && land.vw === 844 && land.vh === 390 && land.overflowX === false && land.clipped.length === 0 && land.toastHits.length === 0 && land.battlefieldRatio >= 0.5 && land.canvasCount === 1 && land.sameCanvas === true && land.contextLost === false && land.isCustomShim === false],
+  ['17. CDP touch gameplay: finger-drift move, single unit, attack-move, camera, dock, resize, pause', touchPass(fixedReport.touchGameplay)]
 ];
 
 console.log('\n[Task D Browser Verification Assertions Summary]');

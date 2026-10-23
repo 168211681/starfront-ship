@@ -8,8 +8,8 @@
   "consoleLogs": [],
   "networkRequests": [
     "http://starfront.local:19082/index.html",
-    "http://starfront.local:19082/assets/index-CJ5DEaId.js",
-    "http://starfront.local:19082/assets/main-DaXva-hg.js"
+    "http://starfront.local:19082/assets/index-CVwBlhwU.js",
+    "http://starfront.local:19082/assets/main-vvWKOHdy.js"
   ],
   "externalNetworkRequests": [],
   "screenshots": {
@@ -49,17 +49,17 @@
     "buildingCount": 12,
     "outpostCount": 1,
     "renderInfo": {
-      "frame": 15,
+      "frame": 16,
       "calls": 30,
       "instancedCalls": 28,
-      "activeInstances": 327,
+      "activeInstances": 319,
       "activeInstancedMeshes": 28,
       "visibleInstancedMeshes": 29,
       "triangles": 8904,
       "lines": 50,
       "geometries": 10,
       "frameTimeMs": 0.4,
-      "avgFrameTimeMs": 56.174,
+      "avgFrameTimeMs": 41.346,
       "contextLossCount": 0
     }
   },
@@ -71,7 +71,7 @@
       "errors": []
     },
     "fields": {
-      "gdp": "633",
+      "gdp": "632",
       "gdpRate": "+14/s",
       "supply": "15/38",
       "power": "13/30",
@@ -95,24 +95,24 @@
     "cameraZoomWorked": true,
     "frameTimingStats": {
       "framesSampled": 60,
-      "avgFrameMs": 0.633,
+      "avgFrameMs": 0.625,
       "p50FrameMs": 0.5,
       "p95FrameMs": 2.2,
-      "maxFrameMs": 3.2,
-      "headlessSwiftShaderFps": 1578.9
+      "maxFrameMs": 3,
+      "headlessSwiftShaderFps": 1600
     },
     "combatRenderStats": {
       "frame": 78,
       "calls": 30,
       "instancedCalls": 29,
-      "activeInstances": 294,
+      "activeInstances": 295,
       "activeInstancedMeshes": 29,
       "visibleInstancedMeshes": 29,
       "triangles": 6992,
       "lines": 50,
       "geometries": 10,
-      "frameTimeMs": 0.3,
-      "avgFrameTimeMs": 0.364,
+      "frameTimeMs": 0.2,
+      "avgFrameTimeMs": 0.41,
       "contextLossCount": 0
     }
   },
@@ -171,8 +171,8 @@
     "canvasCount": 1,
     "lastResize": {
       "kind": "viewport-resize",
-      "timestampIso": "2026-10-23T13:46:02.954Z",
-      "perfMs": 3940,
+      "timestampIso": "2026-10-23T14:19:08.805Z",
+      "perfMs": 3859,
       "cssWidth": 402,
       "cssHeight": 392,
       "applied": false,
@@ -202,16 +202,261 @@
     "threeRevision": "160",
     "isCustomShim": false
   },
+  "touchGameplay": {
+    "test1": {
+      "armySelected": 10,
+      "destInside": true,
+      "ordersIncreased": true,
+      "lastMoveCount": 10,
+      "moving": 10,
+      "stillSelected": 10,
+      "toast": "Moving 10 units to (603, 273)",
+      "delta": {
+        "sum": 492.9,
+        "max": 58.9
+      },
+      "renderedMoved": true,
+      "renderedBefore": [
+        245.7,
+        537.1
+      ],
+      "renderedAfter": [
+        282.7,
+        512.2
+      ],
+      "hit": {
+        "x": 603,
+        "y": 273,
+        "failed": false
+      },
+      "sim": {
+        "running": true,
+        "paused": false,
+        "tacticalPause": false
+      },
+      "positionsBefore": [
+        [
+          14,
+          295,
+          610
+        ],
+        [
+          15,
+          314,
+          620
+        ],
+        [
+          16,
+          340,
+          600
+        ],
+        [
+          17,
+          280,
+          584
+        ],
+        [
+          18,
+          310,
+          591
+        ],
+        [
+          19,
+          356,
+          570
+        ],
+        [
+          20,
+          390,
+          597
+        ],
+        [
+          21,
+          248,
+          536
+        ],
+        [
+          22,
+          290,
+          517
+        ],
+        [
+          23,
+          337,
+          531
+        ]
+      ],
+      "positionsAfter": [
+        [
+          14,
+          331,
+          582
+        ],
+        [
+          15,
+          351,
+          584
+        ],
+        [
+          16,
+          382,
+          565
+        ],
+        [
+          17,
+          287,
+          539
+        ],
+        [
+          18,
+          361,
+          566
+        ],
+        [
+          19,
+          398,
+          529
+        ],
+        [
+          20,
+          419,
+          547
+        ],
+        [
+          21,
+          283,
+          512
+        ],
+        [
+          22,
+          326,
+          504
+        ],
+        [
+          23,
+          372,
+          513
+        ]
+      ]
+    },
+    "test2": {
+      "selectedId": 14,
+      "selectedCount": 1,
+      "state": "move",
+      "delta": 52.5
+    },
+    "test3": {
+      "modeAfterAttack": "attackMove",
+      "modeAfterTap": "select",
+      "selectedBefore": 10,
+      "attackMoving": 9,
+      "delta": {
+        "sum": 483.5,
+        "max": 56.5
+      },
+      "toast": "Attack-Move ordered for 10 units",
+      "hit": {
+        "x": 403,
+        "y": 393,
+        "failed": false
+      },
+      "lastMoveCount": 10
+    },
+    "test4": {
+      "modeAfter": "pan",
+      "camDelta": 150.1,
+      "ordersBefore": 5,
+      "ordersAfterPan": 5,
+      "ordersAfterPinch": 5,
+      "zoomBefore": 1.05,
+      "zoomAfter": 2.4
+    },
+    "test5": {
+      "before": {
+        "scroll0": 0,
+        "scroll1": 0,
+        "retreatClipped": true,
+        "tankClipped": true,
+        "docScroll": 0,
+        "overflowX": false,
+        "touchActionRow": "pan-x",
+        "touchActionBody": "manipulation",
+        "touchActionCanvas": "none"
+      },
+      "after": {
+        "scroll0": 155,
+        "scroll1": 155,
+        "retreatVisible": true,
+        "docScroll": 0,
+        "overflowX": false
+      },
+      "retreatMoved": true,
+      "retreatToast": "Retreating selected squad to Aegis HQ"
+    },
+    "test6": {
+      "portraitInside": true,
+      "portraitErr": 0,
+      "microInside": true,
+      "microErr": 0,
+      "landInside": true,
+      "landErr": 36.9,
+      "landDelta": {
+        "sum": 491.9,
+        "max": 59.8
+      },
+      "landMoving": 10
+    },
+    "test7": {
+      "ordered": 10,
+      "pausedFlag": true,
+      "pausedDelta": {
+        "sum": 0,
+        "max": 0
+      },
+      "resumedFlag": false,
+      "resumeDelta": {
+        "sum": 383.4,
+        "max": 50.6
+      },
+      "running": true,
+      "paused": false
+    },
+    "pointerCancelTap": {
+      "moving": 10,
+      "cancelCount": 1,
+      "cancelCountBefore": 0,
+      "lastMove": 10,
+      "hit": [
+        532,
+        312
+      ]
+    },
+    "lostPointerUp": {
+      "used": "TouchEvent",
+      "touchClient": {
+        "x": 233.16000366210938,
+        "y": 218.67999267578125
+      },
+      "moving": 10,
+      "selected": 10,
+      "fallback": 1,
+      "lastMove": 10,
+      "hit": [
+        365,
+        432
+      ]
+    }
+  },
   "diagHudCheck": {
     "visible": true,
     "fields": {
-      "fpsRolling": "43.6",
-      "fps1Low": "8.6",
-      "frameTime": "22.9 / 50.0 ms",
-      "drawCalls": "21 (25 inst)",
-      "triangles": "5,900",
-      "units": "8",
-      "instanced": "29 (231 inst)",
+      "fpsRolling": "54.5",
+      "fps1Low": "20.0",
+      "frameTime": "18.3 / 33.3 ms",
+      "drawCalls": "25 (25 inst)",
+      "triangles": "8,752",
+      "units": "26",
+      "instanced": "29 (301 inst)",
       "dpr": "1.00 / 2.00",
       "preset": "BALANCED",
       "ctxLoss": "0",

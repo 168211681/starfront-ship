@@ -466,6 +466,29 @@ function updateDiagnosticHUD(sample: PerSecondTelemetrySample): void {
     setTxt('diagCtxLoss', `${sample.webglContextLossCount}`);
     setTxt('diagViewport', `${sample.viewportCssWidth}×${sample.viewportCssHeight} (${sample.drawingBufferWidth}×${sample.drawingBufferHeight})`);
 
+    const inputDiag = inputCtrl.getDiagnostics();
+    setTxt('diagPointerCounts', `${inputDiag.pointerDown}/${inputDiag.pointerUp}/${inputDiag.pointerCancel}`);
+    setTxt('diagInputMode', inputDiag.mode);
+    setTxt('diagSelectedCount', `${inputDiag.selectedCount}`);
+    setTxt(
+      'diagWorldHit',
+      inputDiag.lastHitFailed
+        ? 'MISS'
+        : inputDiag.lastHitX === null
+          ? '—'
+          : `${inputDiag.lastHitX}, ${inputDiag.lastHitY}`
+    );
+    setTxt('diagMoveOrders', `${inputDiag.moveOrdersIssued} (last ${inputDiag.lastMoveCount})`);
+    setTxt('diagUnitDelta', inputDiag.unitPositionDelta.toFixed(1));
+    const simLabel = !inputDiag.running
+      ? 'stopped'
+      : inputDiag.paused
+        ? 'paused'
+        : inputDiag.tacticalPause
+          ? 'tactical-pause'
+          : 'running';
+    setTxt('diagSimState', simLabel);
+
     const recStatus = document.getElementById('diagRecStatus');
     if (recStatus) {
       if (isRecordingTelemetry) {
