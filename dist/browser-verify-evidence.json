@@ -5,11 +5,17 @@
   },
   "exceptions": [],
   "consoleErrors": [],
-  "consoleLogs": [],
+  "consoleLogs": [
+    {
+      "type": "log.error",
+      "text": "The file at 'blob:http://starfront.local:19082/625abb78-3e6a-4aa4-92bf-9d6a1911189d' was loaded over an insecure connection. This file should be served over HTTPS.",
+      "url": "http://starfront.local:19082/index.html"
+    }
+  ],
   "networkRequests": [
     "http://starfront.local:19082/index.html",
-    "http://starfront.local:19082/assets/index-3O2VWBbA.js",
-    "http://starfront.local:19082/assets/main-S1zWhpy7.js"
+    "http://starfront.local:19082/assets/index-CTcwU9BH.js",
+    "http://starfront.local:19082/assets/main-Y99hsgf5.js"
   ],
   "externalNetworkRequests": [],
   "screenshots": {
@@ -40,8 +46,8 @@
       "w": 1440,
       "h": 738
     },
-    "nonBgSampledPixels": 12688,
-    "distinctColorBuckets": 158,
+    "nonBgSampledPixels": 12731,
+    "distinctColorBuckets": 162,
     "unitCount": 26,
     "playerUnits": 10,
     "enemyUnits": 8,
@@ -49,17 +55,17 @@
     "buildingCount": 12,
     "outpostCount": 1,
     "renderInfo": {
-      "frame": 16,
+      "frame": 13,
       "calls": 30,
       "instancedCalls": 28,
-      "activeInstances": 318,
+      "activeInstances": 319,
       "activeInstancedMeshes": 28,
       "visibleInstancedMeshes": 29,
       "triangles": 8904,
       "lines": 50,
       "geometries": 10,
       "frameTimeMs": 0.6,
-      "avgFrameTimeMs": 56.973,
+      "avgFrameTimeMs": 64.735,
       "contextLossCount": 0
     }
   },
@@ -71,7 +77,7 @@
       "errors": []
     },
     "fields": {
-      "gdp": "634",
+      "gdp": "633",
       "gdpRate": "+14/s",
       "supply": "15/38",
       "power": "13/30",
@@ -95,24 +101,24 @@
     "cameraZoomWorked": true,
     "frameTimingStats": {
       "framesSampled": 60,
-      "avgFrameMs": 0.695,
-      "p50FrameMs": 0.5,
-      "p95FrameMs": 2.6,
-      "maxFrameMs": 3,
-      "headlessSwiftShaderFps": 1438.8
+      "avgFrameMs": 0.782,
+      "p50FrameMs": 0.6,
+      "p95FrameMs": 1.7,
+      "maxFrameMs": 3.6,
+      "headlessSwiftShaderFps": 1279.3
     },
     "combatRenderStats": {
-      "frame": 78,
+      "frame": 76,
       "calls": 30,
       "instancedCalls": 29,
-      "activeInstances": 294,
+      "activeInstances": 266,
       "activeInstancedMeshes": 29,
       "visibleInstancedMeshes": 29,
-      "triangles": 6992,
+      "triangles": 6952,
       "lines": 50,
       "geometries": 10,
-      "frameTimeMs": 0.1,
-      "avgFrameTimeMs": 0.326,
+      "frameTimeMs": 0.3,
+      "avgFrameTimeMs": 0.567,
       "contextLossCount": 0
     }
   },
@@ -171,8 +177,8 @@
     "canvasCount": 1,
     "lastResize": {
       "kind": "viewport-resize",
-      "timestampIso": "2026-10-23T15:30:08.957Z",
-      "perfMs": 4189,
+      "timestampIso": "2026-10-23T16:07:45.698Z",
+      "perfMs": 4043,
       "cssWidth": 402,
       "cssHeight": 392,
       "applied": false,
@@ -202,6 +208,44 @@
     "threeRevision": "160",
     "isCustomShim": false
   },
+  "pixelMotion": {
+    "unitId": 21,
+    "from": {
+      "x": 182.04747014308725,
+      "y": 689.4814160505726
+    },
+    "destX": 342.04747014308725,
+    "controlDiff": 0,
+    "versionBeforeFlush": 935,
+    "versionAfterControl": 928,
+    "buffer": {
+      "w": 1440,
+      "h": 738
+    },
+    "scrBefore": {
+      "x": 591,
+      "y": 265
+    },
+    "versionAfter": 936,
+    "versionIncreased": true,
+    "moveDiff": 4027,
+    "departed": 1898,
+    "arrived": 1913,
+    "screenSeparation": 316,
+    "scrAfter": {
+      "x": 849,
+      "y": 447
+    },
+    "arrivalCenter": [
+      6,
+      120,
+      173
+    ],
+    "screenshots": {
+      "before": "artifacts/screenshots/gpu-pixel-before.png",
+      "after": "artifacts/screenshots/gpu-pixel-after.png"
+    }
+  },
   "touchGameplay": {
     "test1": {
       "armySelected": 10,
@@ -212,17 +256,17 @@
       "stillSelected": 10,
       "toast": "Moving 10 units to (603, 273)",
       "delta": {
-        "sum": 515.8,
-        "max": 64.9
+        "sum": 514.9,
+        "max": 65.1
       },
       "renderedMoved": true,
       "renderedBefore": [
-        246.4,
-        534.2
+        242.6,
+        535.6
       ],
       "renderedAfter": [
-        284.9,
-        507.9
+        278.7,
+        511.1
       ],
       "hit": {
         "x": 603,
@@ -237,23 +281,23 @@
       "positionsBefore": [
         [
           14,
-          291,
-          607
+          293,
+          610
         ],
         [
           15,
           319,
-          619
+          623
         ],
         [
           16,
-          345,
-          604
+          342,
+          605
         ],
         [
           17,
           276,
-          583
+          585
         ],
         [
           18,
@@ -262,50 +306,50 @@
         ],
         [
           19,
-          356,
-          574
+          359,
+          572
         ],
         [
           20,
-          390,
-          595
+          384,
+          597
         ],
         [
           21,
-          249,
-          533
+          244,
+          535
         ],
         [
           22,
-          291,
-          519
+          289,
+          516
         ],
         [
           23,
-          336,
-          531
+          338,
+          533
         ]
       ],
       "positionsAfter": [
         [
           14,
-          333,
-          581
+          332,
+          583
         ],
         [
           15,
-          353,
+          352,
           585
         ],
         [
           16,
-          383,
+          381,
           568
         ],
         [
           17,
-          292,
-          534
+          291,
+          535
         ],
         [
           18,
@@ -314,28 +358,28 @@
         ],
         [
           19,
-          397,
-          531
+          401,
+          525
         ],
         [
           20,
-          424,
-          541
+          418,
+          548
         ],
         [
           21,
-          285,
-          508
+          279,
+          511
         ],
         [
           22,
-          329,
-          505
+          327,
+          503
         ],
         [
           23,
           374,
-          512
+          514
         ]
       ]
     },
@@ -343,7 +387,7 @@
       "selectedId": 14,
       "selectedCount": 1,
       "state": "move",
-      "delta": 51.9
+      "delta": 52.7
     },
     "test3": {
       "modeAfterAttack": "attackMove",
@@ -351,8 +395,8 @@
       "selectedBefore": 10,
       "attackMoving": 9,
       "delta": {
-        "sum": 481.2,
-        "max": 64.5
+        "sum": 472.7,
+        "max": 57
       },
       "toast": "Attack-Move ordered for 10 units",
       "hit": {
@@ -401,8 +445,8 @@
       "landInside": true,
       "landErr": 36.9,
       "landDelta": {
-        "sum": 479.4,
-        "max": 58.9
+        "sum": 490.2,
+        "max": 59.8
       },
       "landMoving": 10
     },
@@ -415,8 +459,8 @@
       },
       "resumedFlag": false,
       "resumeDelta": {
-        "sum": 378.9,
-        "max": 50.6
+        "sum": 395.8,
+        "max": 52.1
       },
       "running": true,
       "paused": false
@@ -461,9 +505,9 @@
   "diagHudCheck": {
     "visible": true,
     "fields": {
-      "fpsRolling": "49.7",
-      "fps1Low": "15.0",
-      "frameTime": "20.1 / 33.4 ms",
+      "fpsRolling": "44.2",
+      "fps1Low": "20.0",
+      "frameTime": "22.6 / 49.9 ms",
       "drawCalls": "25 (25 inst)",
       "triangles": "8,628",
       "units": "26",

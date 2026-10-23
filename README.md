@@ -4,6 +4,8 @@ Playable mobile-first 3D tactical RTS vertical slice. Authoritative deterministi
 
 **Release Gate R2.1:** see [`RELEASE_GATE_R2_1.md`](./RELEASE_GATE_R2_1.md). Official Three.js production + automated browser verification are **PASS**. Physical iPhone Safari QA remains **NOT RUN**.
 
+**R2.2.3:** `BattlefieldScene3D` marks dirty `InstancedMesh` matrix and color attributes `needsUpdate` immediately before each `renderer.render()`, so unit motion is uploaded to the GPU instead of remaining in the CPU instance arrays.
+
 ## Architecture
 
 1. **Game Core** (`src/core/specs.ts`, `src/core/simulation.ts`) — deterministic 60 Hz sim; no Three.js dependency  
@@ -22,6 +24,8 @@ npx --no-install tsc --noEmit
 npm run build:vite
 node scripts/verify-official-three.mjs   # must print verdict PASS
 npm test                                # deterministic + shim + offline suites
+npm run test:input                      # touch and pointer gesture regression
+npm run test:gpu                        # InstancedMesh GPU upload regression
 npm run test:browser                    # headless Chrome vs Vite dist/
 ```
 

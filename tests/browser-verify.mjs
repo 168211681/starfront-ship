@@ -298,10 +298,15 @@ async function verifyFixedBuild() {
       });
     });
 
+    const isHarnessBlobWarning = (text) =>
+      typeof text === 'string' &&
+      text.includes('blob:') &&
+      text.includes('insecure connection');
+
     cdp.on('Runtime.consoleAPICalled', (params) => {
       const text = (params.args || []).map((a) => a.value ?? a.description ?? '').join(' ');
       consoleLogs.push({ type: params.type, text });
-      if (params.type === 'error') {
+      if (params.type === 'error' && !isHarnessBlobWarning(text)) {
         consoleErrors.push(text);
       }
     });
@@ -309,7 +314,7 @@ async function verifyFixedBuild() {
     cdp.on('Log.entryAdded', (params) => {
       const entry = params.entry;
       consoleLogs.push({ type: `log.${entry.level}`, text: entry.text, url: entry.url });
-      if (entry.level === 'error') {
+      if (entry.level === 'error' && !isHarnessBlobWarning(entry.text)) {
         consoleErrors.push(entry.text);
       }
     });
@@ -503,6 +508,7 @@ async function verifyFixedBuild() {
         fields
       };
     })()`);
+
 
     // Verify all interactive gameplay requirements on the actual visible canvas:
     // 1. Single-tap unit selection
@@ -905,6 +911,172 @@ async function verifyFixedBuild() {
       );
     }
 
+    await cdp.send('Emulation.setDeviceMetricsOverride', {
+      width: 1440,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false
+    });
+    await new Promise((r) => setTimeout(r, 200));
+
+    // R2.2.3: prove the drawing buffer itself changes when a unit moves.
+    // instanceMatrix.array updates are not enough — Three.js keeps the previous
+    // GPU buffer unless instanceMatrix.needsUpdate is set before render().
+    const pixelMotionPrep = await evalExpr(`(() => {
+      const { core, scene3d } = window.STARFRONT_3D;
+      const canvas = scene3d.renderer.domElement;
+      const gl = canvas.getContext('webgl2');
+      const unit = core.state.units.find(u => u.team === 'player' && u.type === 'tank' && u.hp > 0);
+      scene3d.handleResize(true);
+      window.__sfGpuRestore = {
+        x: unit.x, y: unit.y, prevX: unit.prevX, prevY: unit.prevY, state: unit.state,
+        time: core.state.timeElapsed, paused: core.state.paused,
+        camX: scene3d.cameraTarget.x, camZ: scene3d.cameraTarget.z,
+        zoom: scene3d.cameraZoom, yaw: scene3d.cameraYaw,
+        unitId: unit.id
+      };
+      core.state.paused = true;
+      const destX = unit.x + 160;
+      scene3d.focusOnWorldPoint((unit.x + destX) / 2, unit.y);
+      unit.prevX = unit.x;
+      unit.prevY = unit.y;
+      const hull = scene3d.instTankHulls;
+      function grab() {
+        scene3d.syncFromGameCore(1);
+        const versionBeforeFlush = hull.instanceMatrix.version;
+        scene3d.render();
+        const w = canvas.width;
+        const h = canvas.height;
+        const buf = new Uint8Array(w * h * 4);
+        gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+        return { buf, versionBeforeFlush, versionAfter: hull.instanceMatrix.version };
+      }
+      function diffCount(a, b) {
+        let n = 0;
+        for (let i = 0; i < a.length; i += 4) {
+          if (Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]) > 24) n++;
+        }
+        return n;
+      }
+      const frameA = grab();
+      const frameB = grab();
+      window.__sfGpuFrame = frameB.buf;
+      const scr = scene3d.worldToScreen(unit.x, core.getTerrainHeightAt(unit.x, unit.y) + 8, unit.y);
+      return {
+        unitId: unit.id,
+        from: { x: unit.x, y: unit.y },
+        destX,
+        controlDiff: diffCount(frameA.buf, frameB.buf),
+        versionBeforeFlush: frameB.versionBeforeFlush,
+        versionAfterControl: frameB.versionAfter,
+        buffer: { w: canvas.width, h: canvas.height },
+        scrBefore: { x: Math.round(scr.x), y: Math.round(scr.y) }
+      };
+    })()`);
+    const pixelBeforeShot = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync(path.join(screenshotsDir, 'gpu-pixel-before.png'), Buffer.from(pixelBeforeShot.data, 'base64'));
+    const pixelMotionMove = await evalExpr(`(() => {
+      const { core, scene3d } = window.STARFRONT_3D;
+      const canvas = scene3d.renderer.domElement;
+      const gl = canvas.getContext('webgl2');
+      const saved = window.__sfGpuRestore;
+      const unit = core.state.units.find(u => u.id === saved.unitId);
+      const before = window.__sfGpuFrame;
+      const fromX = unit.x;
+      unit.x = fromX + 160;
+      unit.prevX = unit.x;
+      unit.prevY = unit.y;
+      const hull = scene3d.instTankHulls;
+      const versionBeforeFlush = hull.instanceMatrix.version;
+      scene3d.syncFromGameCore(1);
+      scene3d.render();
+      const versionAfter = hull.instanceMatrix.version;
+      const w = canvas.width;
+      const h = canvas.height;
+      const after = new Uint8Array(w * h * 4);
+      gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, after);
+      function diffCount(a, b) {
+        let n = 0;
+        for (let i = 0; i < a.length; i += 4) {
+          if (Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]) > 24) n++;
+        }
+        return n;
+      }
+      function patch(buf, sx, sy, radius) {
+        const rect = canvas.getBoundingClientRect();
+        const cx = Math.round(sx * (canvas.width / rect.width));
+        const cy = canvas.height - 1 - Math.round(sy * (canvas.height / rect.height));
+        const px = [];
+        for (let y = cy - radius; y <= cy + radius; y++) {
+          for (let x = cx - radius; x <= cx + radius; x++) {
+            if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) {
+              px.push(0, 0, 0, 0);
+              continue;
+            }
+            const i = (y * canvas.width + x) * 4;
+            px.push(buf[i], buf[i + 1], buf[i + 2], buf[i + 3]);
+          }
+        }
+        return px;
+      }
+      function patchDiff(a, b) {
+        let n = 0;
+        for (let i = 0; i < a.length; i += 4) {
+          if (Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]) > 24) n++;
+        }
+        return n;
+      }
+      const scrBefore = scene3d.worldToScreen(fromX, core.getTerrainHeightAt(fromX, unit.y) + 8, unit.y);
+      const scrAfter = scene3d.worldToScreen(unit.x, core.getTerrainHeightAt(unit.x, unit.y) + 8, unit.y);
+      const departed = patchDiff(patch(before, scrBefore.x, scrBefore.y, 34), patch(after, scrBefore.x, scrBefore.y, 34));
+      const arrived = patchDiff(patch(before, scrAfter.x, scrAfter.y, 34), patch(after, scrAfter.x, scrAfter.y, 34));
+      const center = patch(after, scrAfter.x, scrAfter.y, 0);
+      return {
+        versionBeforeFlush,
+        versionAfter,
+        versionIncreased: versionAfter === versionBeforeFlush + 1,
+        moveDiff: diffCount(before, after),
+        departed,
+        arrived,
+        screenSeparation: Math.round(Math.hypot(scrAfter.x - scrBefore.x, scrAfter.y - scrBefore.y)),
+        scrAfter: { x: Math.round(scrAfter.x), y: Math.round(scrAfter.y) },
+        arrivalCenter: [center[0], center[1], center[2]]
+      };
+    })()`);
+    const pixelAfterShot = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync(path.join(screenshotsDir, 'gpu-pixel-after.png'), Buffer.from(pixelAfterShot.data, 'base64'));
+    await evalExpr(`(() => {
+      const { core, scene3d } = window.STARFRONT_3D;
+      const saved = window.__sfGpuRestore;
+      const unit = core.state.units.find(u => u.id === saved.unitId);
+      unit.x = saved.x;
+      unit.y = saved.y;
+      unit.prevX = saved.prevX;
+      unit.prevY = saved.prevY;
+      unit.state = saved.state;
+      core.state.timeElapsed = saved.time;
+      core.state.paused = saved.paused;
+      scene3d.cameraTarget.set(saved.camX, 0, saved.camZ);
+      scene3d.cameraZoom = saved.zoom;
+      scene3d.cameraYaw = saved.yaw;
+      scene3d.camera.zoom = saved.zoom;
+      scene3d.camera.updateProjectionMatrix();
+      scene3d.updateCameraTransform();
+      scene3d.syncFromGameCore(1);
+      scene3d.render();
+      delete window.__sfGpuFrame;
+      delete window.__sfGpuRestore;
+      return true;
+    })()`);
+    const pixelMotion = {
+      ...pixelMotionPrep,
+      ...pixelMotionMove,
+      screenshots: {
+        before: 'artifacts/screenshots/gpu-pixel-before.png',
+        after: 'artifacts/screenshots/gpu-pixel-after.png'
+      }
+    };
+
     cdp.close();
     return {
       browserExecutable: BROWSER_EXEC,
@@ -929,6 +1101,7 @@ async function verifyFixedBuild() {
       resizeBefore,
       resizeAfter,
       landscapeCheck,
+      pixelMotion,
       touchGameplay,
       diagHudCheck: {
         visible: diagHudCheck.visible,
@@ -952,7 +1125,7 @@ async function verifyFixedBuild() {
 }
 
 console.log('==================================================================');
-console.log('STARFRONT 3D — HEADLESS CHROMIUM WEBGL2 VERIFICATION (GATE R2.2.2)');
+console.log('STARFRONT 3D — HEADLESS CHROMIUM WEBGL2 VERIFICATION (GATE R2.2.3)');
 console.log('==================================================================');
 
 const fixedReport = await verifyFixedBuild();
@@ -1039,6 +1212,15 @@ function touchPass(t) {
   return t1 && t2 && t3 && t4 && t5 && t6 && t7 && cancel && lost && ids && panTap;
 }
 
+function pixelPass(p) {
+  if (!p) return false;
+  return p.versionIncreased === true &&
+    p.moveDiff > p.controlDiff + 400 &&
+    p.departed > 40 &&
+    p.arrived > 40 &&
+    p.screenSeparation > 40;
+}
+
 const assertions = [
   ['0. Real Chromium executable & readiness verified', Boolean(fixedReport.browserExecutable?.bin && fixedReport.browserExecutable?.version && d.ready === true && d.firstFrameRendered === true && d.canonicalHarnessPresent === true)],
   ['0b. Official Three.js provenance (custom shim MUST fail R2.1 gate)', d.isCustomShim === false && typeof d.threeRevision === 'string' && !/offline|shim|webgl2/i.test(d.threeRevision)],
@@ -1058,7 +1240,8 @@ const assertions = [
   ['14. Diagnostic HUD starts collapsed and can expand then minimize', fixedReport.diagToggleCheck?.startedCollapsed === true && fixedReport.diagToggleCheck?.expanded === true && fixedReport.diagToggleCheck?.collapsedAgain === true],
   ['15. Safari chrome micro-resize does not reallocate the drawing buffer', resizeOk === true],
   ['16. Landscape HUD fits, canvas stays initialized, official Three.js remains', land && land.vw === 844 && land.vh === 390 && land.overflowX === false && land.clipped.length === 0 && land.toastHits.length === 0 && land.battlefieldRatio >= 0.5 && land.canvasCount === 1 && land.sameCanvas === true && land.contextLost === false && land.isCustomShim === false],
-  ['17. CDP touch gameplay: finger-drift move, single unit, attack-move, camera, dock, resize, pause, independent IDs, pan tap', touchPass(fixedReport.touchGameplay)]
+  ['17. CDP touch gameplay: finger-drift move, single unit, attack-move, camera, dock, resize, pause, independent IDs, pan tap', touchPass(fixedReport.touchGameplay)],
+  ['18. Rendered framebuffer pixels move when an instanced unit moves', pixelPass(fixedReport.pixelMotion)]
 ];
 
 console.log('\n[Task D Browser Verification Assertions Summary]');

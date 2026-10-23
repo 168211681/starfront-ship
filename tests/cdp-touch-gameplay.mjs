@@ -486,9 +486,23 @@ export async function runTouchGameplay(cdp, evalExpr, screenshotsDir) {
   const lostPointerUp = await evalExpr(`(() => {
     const app = window.STARFRONT_3D;
     app.inputCtrl.mode = 'select';
+    let parked = 0;
     for (const u of app.core.state.units) {
-      if (u.team === 'player' && u.hp > 0) { u.selected = true; u.state = 'idle'; u.targetEntity = null; }
+      if (u.team === 'player' && u.hp > 0) {
+        u.selected = true;
+        u.state = 'idle';
+        u.targetEntity = null;
+        // Keep the squad off the tap point. The portrait fraction below lands
+        // near world (365, 432); a unit standing there becomes a selection tap.
+        u.x = 150 + (parked % 5) * 18;
+        u.y = 700;
+        u.prevX = u.x;
+        u.prevY = u.y;
+        parked++;
+      }
     }
+    app.scene3d.syncFromGameCore(1);
+    app.scene3d.render();
     const canvas = document.getElementById('battlefieldCanvas3D');
     const rect = canvas.getBoundingClientRect();
     const x = rect.left + rect.width * 0.58;

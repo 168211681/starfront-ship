@@ -1,6 +1,6 @@
 {
   "name": "starfront-3d-vertical-slice",
-  "version": "0.1.6-r2.2.2",
+  "version": "0.1.6-r2.2.3",
   "private": true,
   "type": "module",
   "description": "STARFRONT: Pocket Command 3D — Vertical Slice 001 (Three.js + WebGL2 + Deterministic RTS Core)",
@@ -14,6 +14,7 @@
     "test": "node tests/run-tests.mjs",
     "test:core": "node tests/run-tests.mjs --core",
     "test:input": "node tests/input-gesture-regression.mjs",
+    "test:gpu": "node tests/instanced-gpu-upload-regression.mjs",
     "test:shim": "node tests/run-tests.mjs --shim",
     "test:offline": "node tests/run-tests.mjs --offline",
     "test:browser": "node tests/browser-verify.mjs",

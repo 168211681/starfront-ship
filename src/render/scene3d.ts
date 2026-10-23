@@ -81,6 +81,11 @@ export class BattlefieldScene3D {
   private readonly tempQuat = new THREE.Quaternion();
   private readonly tempScale = new THREE.Vector3();
   private readonly tempColor = new THREE.Color();
+  // InstancedMesh.setMatrixAt/setColorAt only modify CPU arrays. Three.js
+  // does not upload these changes to the GPU until the attributes are marked
+  // needsUpdate. Keep one dirty flag per batch rather than per instance.
+  private readonly dirtyInstanceMatrices = new Set<THREE.InstancedMesh>();
+  private readonly dirtyInstanceColors = new Set<THREE.InstancedMesh>();
 
   // Measured Renderer & Context Telemetry (Phase 2 & Phase 3)
   public lastFrameRenderMs = 0;
@@ -181,10 +186,23 @@ export class BattlefieldScene3D {
     this.tempScale.set(sx, sy, sz);
     this.tempMatrix.compose(this.tempPos, this.tempQuat, this.tempScale);
     mesh.setMatrixAt(idx, this.tempMatrix);
+    this.dirtyInstanceMatrices.add(mesh);
     if (colorHex !== undefined) {
       this.tempColor.set(colorHex);
       mesh.setColorAt(idx, this.tempColor);
+      this.dirtyInstanceColors.add(mesh);
     }
+  }
+
+  private flushDirtyInstanceBuffers(): void {
+    for (const mesh of this.dirtyInstanceMatrices) {
+      mesh.instanceMatrix.needsUpdate = true;
+    }
+    for (const mesh of this.dirtyInstanceColors) {
+      if (mesh.instanceColor !== null) mesh.instanceColor.needsUpdate = true;
+    }
+    this.dirtyInstanceMatrices.clear();
+    this.dirtyInstanceColors.clear();
   }
 
   private createBatch(geoKey: string, matKey: string, maxCount: number, castShadow = false): THREE.InstancedMesh {
@@ -902,6 +920,7 @@ export class BattlefieldScene3D {
 
   public render(): void {
     const t0 = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    this.flushDirtyInstanceBuffers();
     this.renderer.render(this.scene, this.camera);
     const dtMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - t0;
     this.lastFrameRenderMs = dtMs;
