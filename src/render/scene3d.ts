@@ -840,14 +840,10 @@ export class BattlefieldScene3D {
   public screenToGroundWorld(clientX: number, clientY: number): THREE.Vector3 | null {
     const rect = this.renderer.domElement.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return null;
-    // clientX/clientY are visual-viewport CSS pixels. getBoundingClientRect is layout-viewport.
-    // visualViewport offset is 0 on a non-scrolled desktop and non-zero when iOS Safari chrome
-    // or pinch-zoom shifts the visual viewport. Identity when offset is 0.
-    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
-    const ox = vv ? vv.offsetLeft : 0;
-    const oy = vv ? vv.offsetTop : 0;
-    const ndcX = ((clientX + ox - rect.left) / rect.width) * 2 - 1;
-    const ndcY = -((clientY + oy - rect.top) / rect.height) * 2 + 1;
+    // Pointer/Touch clientX/Y and getBoundingClientRect share the layout viewport.
+    // Do not add visualViewport.offset*: that mis-hits after iOS pinch-zoom.
+    const ndcX = ((clientX - rect.left) / rect.width) * 2 - 1;
+    const ndcY = -((clientY - rect.top) / rect.height) * 2 + 1;
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), this.camera);
     const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);

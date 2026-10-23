@@ -27,6 +27,7 @@ const runAll = args.size === 0 || args.has('--all');
 const runCore = runAll || args.has('--core');
 const runShim = runAll || args.has('--shim');
 const runOffline = runAll || args.has('--offline');
+const runInput = runAll || args.has('--input');
 
 function newestSourceMtime(dir) {
   let max = 0;
@@ -45,7 +46,7 @@ function ensureCoreBundle() {
   const coreBundlePath = path.join(ROOT, 'dist', 'core-bundle.mjs');
   const slicePath = path.join(ROOT, 'dist', 'starfront-3d-slice.js');
   const needCore = runCore && !fs.existsSync(coreBundlePath);
-  const needSlice = runOffline && !fs.existsSync(slicePath);
+  const needSlice = (runOffline || runInput) && !fs.existsSync(slicePath);
   const srcNewest = newestSourceMtime(path.join(ROOT, 'src'));
   const builderMtime = fs.statSync(path.join(ROOT, 'scripts', 'build-standalone.mjs')).mtimeMs;
   const artifactMtime = Math.min(
@@ -82,7 +83,7 @@ function runTest(id, name, suite, fn) {
 
 console.log('====================================================================');
 console.log('STARFRONT 3D — VERTICAL SLICE 001: RELEASE GATE R2.1 TEST SUITE');
-console.log(`Suites: core=${runCore} shim=${runShim} offline=${runOffline}`);
+console.log(`Suites: core=${runCore} shim=${runShim} offline=${runOffline} input=${runInput}`);
 console.log('====================================================================');
 
 if (runCore) {
@@ -467,6 +468,11 @@ if (runOffline) {
   });
 }
 
+if (runInput) {
+  const { runInputRegressions } = await import('./input-regression.mjs');
+  runInputRegressions(runTest);
+}
+
 console.log('====================================================================');
 const passedCount = results.filter(r => r.status === 'PASS').length;
 const bySuite = {};
@@ -484,7 +490,7 @@ console.log('===================================================================
 
 const evidence = {
   timestamp: new Date().toISOString(),
-  suitesRequested: { core: runCore, shim: runShim, offline: runOffline },
+  suitesRequested: { core: runCore, shim: runShim, offline: runOffline, input: runInput },
   summary: { passed: passedCount, total: results.length, bySuite },
   results
 };

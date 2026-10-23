@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-10-23T14:19:33.221Z",
+  "timestamp": "2026-10-23T15:12:25.399Z",
   "npmLsThree": {
-    "version": "0.1.5-r2.2.1",
+    "version": "0.1.6-r2.2.2",
     "name": "starfront-3d-vertical-slice",
     "dependencies": {
       "three": {
@@ -17,7 +17,7 @@
   "isCustomWebGL2Shim": false,
   "vendorShimReferencedInDist": false,
   "viteImportGraph": {
-    "totalModules": 11,
+    "totalModules": 12,
     "threeModuleCount": 1,
     "customShimModuleCount": 0,
     "usesOfficialThree": true,

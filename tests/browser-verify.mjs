@@ -952,7 +952,7 @@ async function verifyFixedBuild() {
 }
 
 console.log('==================================================================');
-console.log('STARFRONT 3D — HEADLESS CHROMIUM WEBGL2 VERIFICATION (GATE R2.2.1)');
+console.log('STARFRONT 3D — HEADLESS CHROMIUM WEBGL2 VERIFICATION (GATE R2.2.2)');
 console.log('==================================================================');
 
 const fixedReport = await verifyFixedBuild();

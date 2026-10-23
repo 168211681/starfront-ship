@@ -1,21 +1,24 @@
 import { GameCore, SimUnit, SimBuilding } from '../core/simulation';
 import { BattlefieldScene3D } from '../render/scene3d';
+import {
+  BOX_SELECT_MIN_PX,
+  PAN_SLOP_PX,
+  SessionIdMap,
+  classifyRelease,
+  eventClientPoint,
+  isUnreliableLift,
+  shouldAliasExisting,
+  type GestureSource,
+  type InteractionMode
+} from './unifiedGesture';
 
-export type InteractionMode = 'select' | 'pan' | 'attackMove';
-
-/**
- * A finger on glass routinely travels 15–40 CSS pixels between touchdown and lift.
- * The previous 18px cutoff treated that as a box-select and cleared the army,
- * so issueMoveOrder never ran. Real box-select still starts at this distance.
- */
-const BOX_SELECT_MIN_PX = 56;
-const PAN_SLOP_PX = 8;
-const PAN_TAP_MAX_PX = 14;
+export type { InteractionMode };
 
 export interface InputDiagnostics {
   pointerDown: number;
   pointerUp: number;
   pointerCancel: number;
+  touchStart: number;
   touchEndFallback: number;
   mode: InteractionMode;
   selectedCount: number;
@@ -33,7 +36,8 @@ export interface InputDiagnostics {
 export class InputController3D {
   public mode: InteractionMode = 'select';
   private activePointers = new Map<number, { x: number; y: number }>();
-  private endedPointers = new Set<number>();
+  private endedSessions = new Set<number>();
+  private ids = new SessionIdMap();
   private primaryPointerId: number | null = null;
   private startX = 0;
   private startY = 0;
@@ -49,6 +53,7 @@ export class InputController3D {
   private pointerDownCount = 0;
   private pointerUpCount = 0;
   private pointerCancelCount = 0;
+  private touchStartCount = 0;
   private touchEndFallbackCount = 0;
   private moveOrdersIssued = 0;
   private lastMoveCount = 0;
@@ -75,6 +80,7 @@ export class InputController3D {
       pointerDown: this.pointerDownCount,
       pointerUp: this.pointerUpCount,
       pointerCancel: this.pointerCancelCount,
+      touchStart: this.touchStartCount,
       touchEndFallback: this.touchEndFallbackCount,
       mode: this.mode,
       selectedCount,
@@ -93,8 +99,6 @@ export class InputController3D {
   private bindEvents(): void {
     this.domElement.addEventListener('pointerdown', (e) => this.onPointerDown(e));
     this.domElement.addEventListener('pointermove', (e) => this.onPointerMove(e));
-    // Capture retargets pointerup to the canvas. Also listen on window so a
-    // synthetic pointerup (and a browser that refuses setPointerCapture) still completes.
     this.domElement.addEventListener('pointerup', (e) => this.onPointerEnd(e, false));
     this.domElement.addEventListener('pointercancel', (e) => this.onPointerEnd(e, true));
     window.addEventListener('pointerup', (e) => this.onPointerEnd(e, false));
@@ -110,28 +114,43 @@ export class InputController3D {
       { passive: false }
     );
 
-    // iOS Safari takes over a touch unless touchmove is cancelled, then fires
-    // pointercancel and swallows pointerup. These listeners do not issue orders.
-    this.domElement.addEventListener('touchstart', (e) => this.onTouchGuard(e), { passive: false });
-    this.domElement.addEventListener('touchmove', (e) => this.onTouchGuard(e), { passive: false });
-    this.domElement.addEventListener('touchend', (e) => this.onTouchFallback(e, false), { passive: false });
-    this.domElement.addEventListener('touchcancel', (e) => this.onTouchFallback(e, true), { passive: false });
+    this.domElement.addEventListener('touchstart', (e) => this.onTouchStart(e), { passive: false });
+    this.domElement.addEventListener('touchmove', (e) => this.onTouchMove(e), { passive: false });
+    this.domElement.addEventListener('touchend', (e) => this.onTouchEnd(e, false), { passive: false });
+    this.domElement.addEventListener('touchcancel', (e) => this.onTouchEnd(e, true), { passive: false });
   }
 
-  private onTouchGuard(e: TouchEvent): void {
-    if (e.cancelable) e.preventDefault();
-  }
-
-  private onTouchFallback(e: TouchEvent, isCancel: boolean): void {
+  private onTouchStart(e: TouchEvent): void {
     if (e.cancelable) e.preventDefault();
     const changed = e.changedTouches;
     if (!changed) return;
     for (let i = 0; i < changed.length; i++) {
       const t = changed.item(i);
       if (!t) continue;
-      if (this.endedPointers.has(t.identifier)) continue;
-      if (!this.activePointers.has(t.identifier) && this.primaryPointerId !== t.identifier) continue;
-      this.finishPointer(t.identifier, t.clientX, t.clientY, isCancel, true);
+      this.touchStartCount++;
+      this.ingestDown(t.identifier, t.clientX, t.clientY, 'touch', null);
+    }
+  }
+
+  private onTouchMove(e: TouchEvent): void {
+    if (e.cancelable) e.preventDefault();
+    const changed = e.changedTouches;
+    if (!changed) return;
+    for (let i = 0; i < changed.length; i++) {
+      const t = changed.item(i);
+      if (!t) continue;
+      this.ingestMove(t.identifier, t.clientX, t.clientY);
+    }
+  }
+
+  private onTouchEnd(e: TouchEvent, isCancel: boolean): void {
+    if (e.cancelable) e.preventDefault();
+    const changed = e.changedTouches;
+    if (!changed) return;
+    for (let i = 0; i < changed.length; i++) {
+      const t = changed.item(i);
+      if (!t) continue;
+      this.ingestUp(t.identifier, t.clientX, t.clientY, isCancel, 'touch');
     }
   }
 
@@ -161,32 +180,48 @@ export class InputController3D {
     }
   }
 
-  private onPointerDown(e: PointerEvent): void {
-    this.pointerDownCount++;
-    if (e.button === 2) {
-      const ground = this.scene3d.screenToGroundWorld(e.clientX, e.clientY);
-      if (ground) {
-        const pt = this.scene3d.adapter.toGame2D(ground.x, ground.z);
-        this.noteHit(pt.x, pt.y, false);
-        const enemy = this.pickHostileAt(pt.x, pt.y);
-        if (enemy) {
-          this.core.issueAttackTargetOrder(enemy);
-          this.onStatusUpdate(`Focus-firing ${enemy.name}!`);
-        } else {
-          this.noteMove(this.core.issueMoveOrder(pt.x, pt.y, false));
-          this.onStatusUpdate(`Moving selected squad to (${Math.round(pt.x)}, ${Math.round(pt.y)})`);
-        }
-      } else {
-        this.noteHit(0, 0, true);
+  private findAliasSession(x: number, y: number): number | null {
+    let best: number | null = null;
+    let bestD = Number.POSITIVE_INFINITY;
+    for (const [id, p] of this.activePointers) {
+      if (!shouldAliasExisting(p, { x, y })) continue;
+      const d = Math.hypot(p.x - x, p.y - y);
+      if (d < bestD) {
+        bestD = d;
+        best = id;
       }
+    }
+    return best;
+  }
+
+  private ingestDown(
+    rawId: number,
+    clientX: number,
+    clientY: number,
+    source: GestureSource,
+    captureId: number | null
+  ): void {
+    if (this.activePointers.size === 0) {
+      this.endedSessions.clear();
+      this.ids.clear();
+    }
+
+    const nearby = this.findAliasSession(clientX, clientY);
+    if (nearby !== null && nearby !== rawId) {
+      this.ids.bind(rawId, nearby);
+      this.activePointers.set(nearby, { x: clientX, y: clientY });
+      if (captureId !== null) this.tryCapture(captureId);
       return;
     }
 
-    if (e.cancelable) e.preventDefault();
-    if (this.activePointers.size === 0) this.endedPointers.clear();
+    if (this.activePointers.has(rawId)) {
+      this.activePointers.set(rawId, { x: clientX, y: clientY });
+      if (captureId !== null) this.tryCapture(captureId);
+      return;
+    }
 
-    this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    this.tryCapture(e.pointerId);
+    this.activePointers.set(rawId, { x: clientX, y: clientY });
+    if (captureId !== null) this.tryCapture(captureId);
 
     if (this.activePointers.size >= 2) {
       this.primaryPointerId = null;
@@ -203,18 +238,20 @@ export class InputController3D {
 
     if (performance.now() < this.multiTouchGuardUntil) return;
 
-    this.primaryPointerId = e.pointerId;
-    this.startX = e.clientX;
-    this.startY = e.clientY;
-    this.currX = e.clientX;
-    this.currY = e.clientY;
+    this.primaryPointerId = rawId;
+    this.startX = clientX;
+    this.startY = clientY;
+    this.currX = clientX;
+    this.currY = clientY;
     this.sawMove = false;
     this.isDragging = false;
+    void source;
   }
 
-  private onPointerMove(e: PointerEvent): void {
-    if (this.activePointers.has(e.pointerId)) {
-      this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  private ingestMove(rawId: number, clientX: number, clientY: number): void {
+    const id = this.ids.resolve(rawId);
+    if (this.activePointers.has(id)) {
+      this.activePointers.set(id, { x: clientX, y: clientY });
     }
 
     if (this.activePointers.size >= 2) {
@@ -250,12 +287,12 @@ export class InputController3D {
       return;
     }
 
-    if (this.primaryPointerId === null || e.pointerId !== this.primaryPointerId) return;
+    if (this.primaryPointerId === null || id !== this.primaryPointerId) return;
 
-    const dx = e.clientX - this.currX;
-    const dy = e.clientY - this.currY;
-    this.currX = e.clientX;
-    this.currY = e.clientY;
+    const dx = clientX - this.currX;
+    const dy = clientY - this.currY;
+    this.currX = clientX;
+    this.currY = clientY;
     this.sawMove = true;
 
     const totalDist = Math.hypot(this.currX - this.startX, this.currY - this.startY);
@@ -274,28 +311,28 @@ export class InputController3D {
     }
   }
 
-  private onPointerEnd(e: PointerEvent, isCancel: boolean): void {
-    this.finishPointer(e.pointerId, e.clientX, e.clientY, isCancel, false);
-  }
-
-  private finishPointer(
-    pointerId: number,
+  private ingestUp(
+    rawId: number,
     clientX: number,
     clientY: number,
     isCancel: boolean,
-    fromTouchFallback: boolean
+    source: GestureSource
   ): void {
-    if (this.endedPointers.has(pointerId)) return;
-    const wasTracked = this.activePointers.has(pointerId) || this.primaryPointerId === pointerId;
+    const id = this.ids.resolve(rawId);
+    if (this.endedSessions.has(id) || this.endedSessions.has(rawId)) return;
+    const wasTracked = this.activePointers.has(id) || this.primaryPointerId === id;
     if (!wasTracked) return;
 
-    if (fromTouchFallback) this.touchEndFallbackCount++;
+    if (source === 'touch') this.touchEndFallbackCount++;
     else if (isCancel) this.pointerCancelCount++;
     else this.pointerUpCount++;
 
-    this.activePointers.delete(pointerId);
-    this.tryRelease(pointerId);
-    this.endedPointers.add(pointerId);
+    this.activePointers.delete(id);
+    this.tryRelease(rawId);
+    this.tryRelease(id);
+    this.endedSessions.add(id);
+    this.endedSessions.add(rawId);
+    this.ids.dropSession(id);
 
     if (this.activePointers.size > 0) {
       this.primaryPointerId = null;
@@ -305,7 +342,7 @@ export class InputController3D {
       return;
     }
 
-    if (this.primaryPointerId === null || pointerId !== this.primaryPointerId) return;
+    if (this.primaryPointerId === null || id !== this.primaryPointerId) return;
     this.primaryPointerId = null;
 
     if (performance.now() < this.multiTouchGuardUntil) {
@@ -314,36 +351,58 @@ export class InputController3D {
       return;
     }
 
-    // A lift that jumps across the screen without any pointermove is a dropped
-    // coordinate (synthetic TouchEvent zeros, or a WebKit pointerup at 0,0).
-    // Complete the tap at the last real point instead of box-selecting the page.
-    const jump = Math.hypot(clientX - this.currX, clientY - this.currY);
-    const unreliableLift = !this.sawMove && jump > 48;
-    if (!unreliableLift && Number.isFinite(clientX) && Number.isFinite(clientY)) {
+    const lift = { x: clientX, y: clientY };
+    const last = { x: this.currX, y: this.currY };
+    const start = { x: this.startX, y: this.startY };
+    if (!isUnreliableLift(start, last, lift, this.sawMove)) {
       this.currX = clientX;
       this.currY = clientY;
     }
 
     const totalDist = Math.hypot(this.currX - this.startX, this.currY - this.startY);
+    const action = classifyRelease(this.mode, totalDist, isCancel);
 
-    // A long drag that the browser cancels must not wipe the selection.
-    // A short cancel is how iOS delivers a tap when it never sends pointerup.
-    if (isCancel && totalDist >= BOX_SELECT_MIN_PX) {
-      this.isDragging = false;
-      this.hideSelectionBox();
-      return;
-    }
-
-    if (this.mode === 'pan') {
-      if (totalDist <= PAN_TAP_MAX_PX) this.handleSingleTap(this.currX, this.currY);
-    } else if (this.mode === 'select' && totalDist >= BOX_SELECT_MIN_PX) {
-      this.performBoxSelection();
-    } else {
-      this.handleSingleTap(this.currX, this.currY);
-    }
+    if (action === 'tap') this.handleSingleTap(this.currX, this.currY);
+    else if (action === 'box-select') this.performBoxSelection();
 
     this.isDragging = false;
     this.hideSelectionBox();
+  }
+
+  private onPointerDown(e: PointerEvent): void {
+    this.pointerDownCount++;
+    if (e.button === 2) {
+      const ground = this.scene3d.screenToGroundWorld(e.clientX, e.clientY);
+      if (ground) {
+        const pt = this.scene3d.adapter.toGame2D(ground.x, ground.z);
+        this.noteHit(pt.x, pt.y, false);
+        const enemy = this.pickHostileAt(pt.x, pt.y);
+        if (enemy) {
+          this.core.issueAttackTargetOrder(enemy);
+          this.onStatusUpdate(`Focus-firing ${enemy.name}!`);
+        } else {
+          this.noteMove(this.core.issueMoveOrder(pt.x, pt.y, false));
+          this.onStatusUpdate(`Moving selected squad to (${Math.round(pt.x)}, ${Math.round(pt.y)})`);
+        }
+      } else {
+        this.noteHit(0, 0, true);
+      }
+      return;
+    }
+
+    if (e.cancelable) e.preventDefault();
+    const pt = eventClientPoint(e);
+    this.ingestDown(e.pointerId, pt.x, pt.y, 'pointer', e.pointerId);
+  }
+
+  private onPointerMove(e: PointerEvent): void {
+    const pt = eventClientPoint(e);
+    this.ingestMove(e.pointerId, pt.x, pt.y);
+  }
+
+  private onPointerEnd(e: PointerEvent, isCancel: boolean): void {
+    const pt = eventClientPoint(e);
+    this.ingestUp(e.pointerId, pt.x, pt.y, isCancel, 'pointer');
   }
 
   private updateSelectionBoxOverlay(): void {

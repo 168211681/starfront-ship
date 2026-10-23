@@ -1,13 +1,14 @@
 {
-  "timestamp": "2026-10-23T14:17:11.487Z",
+  "timestamp": "2026-10-23T15:11:46.228Z",
   "suitesRequested": {
     "core": true,
     "shim": true,
-    "offline": true
+    "offline": true,
+    "input": true
   },
   "summary": {
-    "passed": 13,
-    "total": 13,
+    "passed": 21,
+    "total": 21,
     "bySuite": {
       "core": {
         "pass": 11,
@@ -23,6 +24,11 @@
         "pass": 1,
         "fail": 0,
         "total": 1
+      },
+      "input": {
+        "pass": 8,
+        "fail": 0,
+        "total": 8
       }
     }
   },
@@ -117,6 +123,62 @@
       "suite": "offline",
       "status": "PASS",
       "detail": "Units=26, Buildings=12, visibleInstancedMeshes=29, visibleNonInstancedMeshes=4, totalActiveInstances=297"
+    },
+    {
+      "id": "INPUT-01",
+      "name": "Army + pointer tap empty terrain issues a move",
+      "suite": "input",
+      "status": "PASS",
+      "detail": "selected=10 moving=10 travel=310.5"
+    },
+    {
+      "id": "INPUT-02",
+      "name": "Army + Safari touch-only sequence (no pointer events) issues a move",
+      "suite": "input",
+      "status": "PASS",
+      "detail": "moving=10 travel=310.5 fallback=1"
+    },
+    {
+      "id": "INPUT-03",
+      "name": "22px finger drift still moves and does not clear the army",
+      "suite": "input",
+      "status": "PASS",
+      "detail": "selected=10 moving=10"
+    },
+    {
+      "id": "INPUT-04",
+      "name": "Single-unit pointer select then destination moves only that unit",
+      "suite": "input",
+      "status": "PASS",
+      "detail": "id=14 dist=22.9"
+    },
+    {
+      "id": "INPUT-05",
+      "name": "Attack-Move tap issues attackMove and units travel",
+      "suite": "input",
+      "status": "PASS",
+      "detail": "attackMove=10 travel=310.5"
+    },
+    {
+      "id": "INPUT-06",
+      "name": "Pan drag moves the camera and does not issue a move order",
+      "suite": "input",
+      "status": "PASS",
+      "detail": "camDelta=117.2 orders=0"
+    },
+    {
+      "id": "INPUT-07",
+      "name": "Safari dual-id tap aliases; two real fingers do not issue a move",
+      "suite": "input",
+      "status": "PASS",
+      "detail": "aliasMove=10 pinchOrdersUnchanged=1"
+    },
+    {
+      "id": "INPUT-08",
+      "name": "Short pointercancel is a tap; Pause freezes, Play resumes",
+      "suite": "input",
+      "status": "PASS",
+      "detail": "cancelMove=10 paused=0.00 resumed=235.8"
     }
   ]
 }

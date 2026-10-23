@@ -59,6 +59,7 @@ const simCode = transpileTS('src/core/simulation.ts');
 const adapterCode = transpileTS('src/adapter/worldAdapter.ts');
 const modelsCode = transpileTS('src/render/models3d.ts');
 const sceneCode = transpileTS('src/render/scene3d.ts');
+const gestureCode = transpileTS('src/input/unifiedGesture.ts');
 const inputCode = transpileTS('src/input/inputController.ts');
 const mainCode = transpileTS('src/main.ts');
 
@@ -95,6 +96,7 @@ ${simCode}
 ${adapterCode}
 ${modelsCode}
 ${sceneCode}
+${gestureCode}
 ${inputCode}
 ${mainCode}
 })();

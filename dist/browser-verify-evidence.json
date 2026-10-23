@@ -8,8 +8,8 @@
   "consoleLogs": [],
   "networkRequests": [
     "http://starfront.local:19082/index.html",
-    "http://starfront.local:19082/assets/index-CVwBlhwU.js",
-    "http://starfront.local:19082/assets/main-vvWKOHdy.js"
+    "http://starfront.local:19082/assets/index-DzEPh2nL.js",
+    "http://starfront.local:19082/assets/main-0Uv-OXny.js"
   ],
   "externalNetworkRequests": [],
   "screenshots": {
@@ -49,7 +49,7 @@
     "buildingCount": 12,
     "outpostCount": 1,
     "renderInfo": {
-      "frame": 16,
+      "frame": 17,
       "calls": 30,
       "instancedCalls": 28,
       "activeInstances": 319,
@@ -59,7 +59,7 @@
       "lines": 50,
       "geometries": 10,
       "frameTimeMs": 0.4,
-      "avgFrameTimeMs": 41.346,
+      "avgFrameTimeMs": 52.746,
       "contextLossCount": 0
     }
   },
@@ -95,24 +95,24 @@
     "cameraZoomWorked": true,
     "frameTimingStats": {
       "framesSampled": 60,
-      "avgFrameMs": 0.625,
-      "p50FrameMs": 0.5,
-      "p95FrameMs": 2.2,
-      "maxFrameMs": 3,
-      "headlessSwiftShaderFps": 1600
+      "avgFrameMs": 0.542,
+      "p50FrameMs": 0.4,
+      "p95FrameMs": 1.1,
+      "maxFrameMs": 3.8,
+      "headlessSwiftShaderFps": 1846.2
     },
     "combatRenderStats": {
-      "frame": 78,
+      "frame": 79,
       "calls": 30,
       "instancedCalls": 29,
-      "activeInstances": 295,
+      "activeInstances": 271,
       "activeInstancedMeshes": 29,
       "visibleInstancedMeshes": 29,
-      "triangles": 6992,
+      "triangles": 7256,
       "lines": 50,
       "geometries": 10,
-      "frameTimeMs": 0.2,
-      "avgFrameTimeMs": 0.41,
+      "frameTimeMs": 0.1,
+      "avgFrameTimeMs": 0.273,
       "contextLossCount": 0
     }
   },
@@ -171,8 +171,8 @@
     "canvasCount": 1,
     "lastResize": {
       "kind": "viewport-resize",
-      "timestampIso": "2026-10-23T14:19:08.805Z",
-      "perfMs": 3859,
+      "timestampIso": "2026-10-23T15:11:57.835Z",
+      "perfMs": 3906,
       "cssWidth": 402,
       "cssHeight": 392,
       "applied": false,
@@ -212,17 +212,17 @@
       "stillSelected": 10,
       "toast": "Moving 10 units to (603, 273)",
       "delta": {
-        "sum": 492.9,
-        "max": 58.9
+        "sum": 532.5,
+        "max": 64.6
       },
       "renderedMoved": true,
       "renderedBefore": [
-        245.7,
-        537.1
+        243,
+        535.9
       ],
       "renderedAfter": [
-        282.7,
-        512.2
+        280.8,
+        509.4
       ],
       "hit": {
         "x": 603,
@@ -237,105 +237,105 @@
       "positionsBefore": [
         [
           14,
-          295,
-          610
+          294,
+          607
         ],
         [
           15,
-          314,
-          620
+          317,
+          623
         ],
         [
           16,
-          340,
-          600
+          345,
+          602
         ],
         [
           17,
-          280,
+          277,
           584
         ],
         [
           18,
-          310,
+          305,
           591
         ],
         [
           19,
-          356,
+          358,
           570
         ],
         [
           20,
-          390,
+          388,
           597
         ],
         [
           21,
-          248,
-          536
+          246,
+          535
         ],
         [
           22,
           290,
-          517
+          521
         ],
         [
           23,
-          337,
-          531
+          339,
+          533
         ]
       ],
       "positionsAfter": [
         [
           14,
-          331,
-          582
+          336,
+          577
         ],
         [
           15,
-          351,
+          355,
           584
         ],
         [
           16,
-          382,
+          386,
           565
         ],
         [
           17,
-          287,
-          539
+          292,
+          534
         ],
         [
           18,
-          361,
+          365,
           566
         ],
         [
           19,
-          398,
-          529
+          403,
+          524
         ],
         [
           20,
-          419,
-          547
+          421,
+          545
         ],
         [
           21,
-          283,
-          512
+          281,
+          509
         ],
         [
           22,
-          326,
-          504
+          330,
+          506
         ],
         [
           23,
-          372,
-          513
+          376,
+          512
         ]
       ]
     },
@@ -343,7 +343,7 @@
       "selectedId": 14,
       "selectedCount": 1,
       "state": "move",
-      "delta": 52.5
+      "delta": 48.8
     },
     "test3": {
       "modeAfterAttack": "attackMove",
@@ -351,8 +351,8 @@
       "selectedBefore": 10,
       "attackMoving": 9,
       "delta": {
-        "sum": 483.5,
-        "max": 56.5
+        "sum": 470.9,
+        "max": 57.8
       },
       "toast": "Attack-Move ordered for 10 units",
       "hit": {
@@ -401,8 +401,8 @@
       "landInside": true,
       "landErr": 36.9,
       "landDelta": {
-        "sum": 491.9,
-        "max": 59.8
+        "sum": 478.3,
+        "max": 58.3
       },
       "landMoving": 10
     },
@@ -415,8 +415,8 @@
       },
       "resumedFlag": false,
       "resumeDelta": {
-        "sum": 383.4,
-        "max": 50.6
+        "sum": 389.8,
+        "max": 52.1
       },
       "running": true,
       "paused": false
@@ -450,13 +450,13 @@
   "diagHudCheck": {
     "visible": true,
     "fields": {
-      "fpsRolling": "54.5",
+      "fpsRolling": "55.0",
       "fps1Low": "20.0",
-      "frameTime": "18.3 / 33.3 ms",
+      "frameTime": "18.2 / 33.3 ms",
       "drawCalls": "25 (25 inst)",
-      "triangles": "8,752",
+      "triangles": "8,652",
       "units": "26",
-      "instanced": "29 (301 inst)",
+      "instanced": "29 (293 inst)",
       "dpr": "1.00 / 2.00",
       "preset": "BALANCED",
       "ctxLoss": "0",
