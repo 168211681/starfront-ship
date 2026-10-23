@@ -1,0 +1,19 @@
+[BUILD WARNING] Standalone artifacts use the OFFLINE WebGL2 shim (src/vendor/three-webgl2.js).
+[BUILD WARNING] These artifacts are NOT valid for Official Three.js R2.1 production proof.
+[BUILD WARNING] Use `npm run build:vite` + `node scripts/verify-official-three.mjs` for the official gate.
+[BUILD WARNING] node_modules/three is intentionally left untouched (shim isolation).
+Built dist/standalone-shim.html, dist/starfront-3d-slice.js, dist/core-bundle.mjs
+Isolated offline shim copy: dist/offline-shim/three/ (node_modules/three NOT modified)
+{
+  "generatedAt": "2026-10-23T11:57:24.925Z",
+  "artifact": "standalone-offline-shim",
+  "usedOfficialThree": false,
+  "usedCustomShim": true,
+  "shimSourcePath": "src/vendor/three-webgl2.js",
+  "isolatedShimCopy": "dist/offline-shim/three",
+  "standaloneHtml": "dist/standalone-shim.html",
+  "standaloneJs": "dist/starfront-3d-slice.js",
+  "coreBundle": "dist/core-bundle.mjs",
+  "nodeModulesThreeUntouched": true,
+  "releaseGateNote": "Standalone shim artifacts are for offline/mocked-DOM tests only. Official R2.1 production proof requires npm run build:vite."
+}

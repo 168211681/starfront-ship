@@ -16,4 +16,5 @@ Per the Vertical Slice 001 specification, the following systems from the 2D prot
 
 ## 3. Technical Risks for Full-Scale Migration
 - **Draw Call Scaling at 200+ Units**: Vertical Slice 001 uses shared `BufferGeometry` and shared `MeshLambertMaterial` instances across hierarchical unit rigs (so turrets and barrels can rotate independently). Migrating to the full `7800 × 5400` map with 200+ simultaneous units should convert static hull/infantry sub-parts to `THREE.InstancedMesh` with custom instance attribute matrices for turret yaw.
-- **CDN Module Dependency in Standalone Build**: The single-file `dist/index.html` imports `three.module.min.js` (`v0.160.0`) via CDN when opened directly without a local `node_modules` folder; running `npm install && npm run build` with Vite bundles Three.js locally for 100% offline deployment.
+- **Offline Standalone vs Official Production**: `npm run build:standalone` embeds the isolated WebGL2 shim (`src/vendor/three-webgl2.js`) into `dist/standalone-shim.html` for air-gapped / mocked-DOM tests only. It never writes into `node_modules/three`. Official R2.1 production proof requires `npm run build:vite` with npm `three@0.160.0`.
+- **Physical iPhone thermal / sustained FPS**: Still **NOT RUN** until validated on a real device (`npm run preview:iphone` prepares HTTPS LAN serving of the Vite dist).

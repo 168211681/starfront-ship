@@ -1,0 +1,53 @@
+
+> starfront-3d-vertical-slice@0.1.3-r2.1 test
+> node tests/run-tests.mjs
+
+[tests] Building offline standalone / core-bundle via scripts/build-standalone.mjs …
+[BUILD WARNING] Standalone artifacts use the OFFLINE WebGL2 shim (src/vendor/three-webgl2.js).
+[BUILD WARNING] These artifacts are NOT valid for Official Three.js R2.1 production proof.
+[BUILD WARNING] Use `npm run build:vite` + `node scripts/verify-official-three.mjs` for the official gate.
+[BUILD WARNING] node_modules/three is intentionally left untouched (shim isolation).
+Built dist/standalone-shim.html, dist/starfront-3d-slice.js, dist/core-bundle.mjs
+Isolated offline shim copy: dist/offline-shim/three/ (node_modules/three NOT modified)
+{
+  "generatedAt": "2026-10-23T11:56:24.728Z",
+  "artifact": "standalone-offline-shim",
+  "usedOfficialThree": false,
+  "usedCustomShim": true,
+  "shimSourcePath": "src/vendor/three-webgl2.js",
+  "isolatedShimCopy": "dist/offline-shim/three",
+  "standaloneHtml": "dist/standalone-shim.html",
+  "standaloneJs": "dist/starfront-3d-slice.js",
+  "coreBundle": "dist/core-bundle.mjs",
+  "nodeModulesThreeUntouched": true,
+  "releaseGateNote": "Standalone shim artifacts are for offline/mocked-DOM tests only. Official R2.1 production proof requires npm run build:vite."
+}
+====================================================================
+STARFRONT 3D — VERTICAL SLICE 001: RELEASE GATE R2.1 TEST SUITE
+Suites: core=true shim=true offline=true
+====================================================================
+
+--- SUITE: Deterministic Game Core ---
+✅ [PASS] TEST-01: A1: Fighter cannot launch without required buildings (Airfield + Radar) — Blocked when missing Airfield or Radar; crystals unchanged (1000/1000), cd=0
+✅ [PASS] TEST-02: A1: Fighter cannot launch without sufficient resources (< 180 GDP) — Blocked at 0 and 179 GDP
+✅ [PASS] TEST-03: A1: Valid Fighter launch deducts 180 GDP, sets 11s cooldown, spawns 2 F-22s — Crystals=320, cd=11s, airStrikes=2
+✅ [PASS] TEST-04: A2: Bot 2 captures neutral outpost as bot2 (never assigned to enemy) — owner=bot2, progress=100
+✅ [PASS] TEST-05: A2: Enemy captures neutral outpost as enemy & contested outpost locks ownership — owner=enemy, contested=true
+✅ [PASS] TEST-06: A3: Zero resource balance stays valid (no || 400 fallback) & sanitizes NaN/negative — bot2 after 1 tick=0.117 (no +400 jump)
+✅ [PASS] TEST-07: A4: Fixed-timestep simulation produces identical state at 60 FPS and 20 FPS — t60=5.00s, t20=5.00s, unit0.x match
+✅ [PASS] TEST-08: Phase B/C: Ground units clamp outside deep river and cross smoothly via central bridge — Crossed from side -1 to 1 (distToDest=3.9)
+✅ [PASS] TEST-09: WorldAdapter: Maps 2D (x,y) to 3D (x, elevation, z) and interpolates between ticks — Bridge 3D=(600, 3.5, 400), mid-tick interp=(130, 240)
+✅ [PASS] TEST-10: Victory / Defeat: Destroying both hostile HQs triggers victory; player HQ triggers defeat — Victory after both hostile HQs destroyed; Defeat when Player HQ destroyed
+✅ [PASS] TEST-10b: Faction palette numeric colors remain numbers (renderer-agnostic) — FACTION_COLORS palettes validated
+
+--- SUITE: Offline WebGL2 Shim Compatibility ---
+✅ [PASS] TEST-11: R2 Blocker 2 & 3: No composeEuler(); Matrix4.compose uses Quaternion; InstancedMesh.setColorAt requires THREE.Color — Shim API compatible; REVISION identifies offline shim; IS_OFFICIAL_THREE=false
+
+--- SUITE: Offline Standalone IIFE (mocked DOM) ---
+✅ [PASS] TEST-12: Offline standalone IIFE in mocked DOM: hardware instancing & mesh count audit — Units=26, Buildings=12, visibleInstancedMeshes=29, visibleNonInstancedMeshes=4, totalActiveInstances=297
+====================================================================
+SUMMARY: 13/13 TESTS PASSED
+BY SUITE: {"core":{"pass":11,"fail":0,"total":11},"shim":{"pass":1,"fail":0,"total":1},"offline":{"pass":1,"fail":0,"total":1}}
+NOTE: Official Three.js proof = node scripts/verify-official-three.mjs
+NOTE: Browser verification = node tests/browser-verify.mjs (Vite dist/)
+====================================================================
