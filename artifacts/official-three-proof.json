@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-10-23T14:19:33.221Z",
+  "timestamp": "2026-10-23T15:30:34.339Z",
   "npmLsThree": {
-    "version": "0.1.5-r2.2.1",
+    "version": "0.1.6-r2.2.2",
     "name": "starfront-3d-vertical-slice",
     "dependencies": {
       "three": {

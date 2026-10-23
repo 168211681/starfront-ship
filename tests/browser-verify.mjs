@@ -952,7 +952,7 @@ async function verifyFixedBuild() {
 }
 
 console.log('==================================================================');
-console.log('STARFRONT 3D — HEADLESS CHROMIUM WEBGL2 VERIFICATION (GATE R2.2.1)');
+console.log('STARFRONT 3D — HEADLESS CHROMIUM WEBGL2 VERIFICATION (GATE R2.2.2)');
 console.log('==================================================================');
 
 const fixedReport = await verifyFixedBuild();
@@ -1031,7 +1031,12 @@ function touchPass(t) {
     t.test7.paused === false;
   const cancel = t.pointerCancelTap && t.pointerCancelTap.moving >= 5 && t.pointerCancelTap.cancelCount > t.pointerCancelTap.cancelCountBefore;
   const lost = t.lostPointerUp && t.lostPointerUp.moving >= 5 && t.lostPointerUp.fallback > 0;
-  return t1 && t2 && t3 && t4 && t5 && t6 && t7 && cancel && lost;
+  const ids = t.independentTouchIds && t.independentTouchIds.selected >= 5 &&
+    t.independentTouchIds.moving >= 5 && t.independentTouchIds.orderDelta === 1 &&
+    t.independentTouchIds.touchDelta === 1 && t.independentTouchIds.lastGesture === 'touch-tap';
+  const panTap = t.panTapNoOrder && t.panTapNoOrder.orderDelta === 0 &&
+    t.panTapNoOrder.lastGesture === 'pan-only';
+  return t1 && t2 && t3 && t4 && t5 && t6 && t7 && cancel && lost && ids && panTap;
 }
 
 const assertions = [
@@ -1053,7 +1058,7 @@ const assertions = [
   ['14. Diagnostic HUD starts collapsed and can expand then minimize', fixedReport.diagToggleCheck?.startedCollapsed === true && fixedReport.diagToggleCheck?.expanded === true && fixedReport.diagToggleCheck?.collapsedAgain === true],
   ['15. Safari chrome micro-resize does not reallocate the drawing buffer', resizeOk === true],
   ['16. Landscape HUD fits, canvas stays initialized, official Three.js remains', land && land.vw === 844 && land.vh === 390 && land.overflowX === false && land.clipped.length === 0 && land.toastHits.length === 0 && land.battlefieldRatio >= 0.5 && land.canvasCount === 1 && land.sameCanvas === true && land.contextLost === false && land.isCustomShim === false],
-  ['17. CDP touch gameplay: finger-drift move, single unit, attack-move, camera, dock, resize, pause', touchPass(fixedReport.touchGameplay)]
+  ['17. CDP touch gameplay: finger-drift move, single unit, attack-move, camera, dock, resize, pause, independent IDs, pan tap', touchPass(fixedReport.touchGameplay)]
 ];
 
 console.log('\n[Task D Browser Verification Assertions Summary]');

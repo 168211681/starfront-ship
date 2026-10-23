@@ -468,6 +468,8 @@ function updateDiagnosticHUD(sample: PerSecondTelemetrySample): void {
 
     const inputDiag = inputCtrl.getDiagnostics();
     setTxt('diagPointerCounts', `${inputDiag.pointerDown}/${inputDiag.pointerUp}/${inputDiag.pointerCancel}`);
+    setTxt('diagTouchCounts', `${inputDiag.touchStart}/${inputDiag.touchEnd}/${inputDiag.touchCancel}`);
+    setTxt('diagLastGesture', inputDiag.lastGesture);
     setTxt('diagInputMode', inputDiag.mode);
     setTxt('diagSelectedCount', `${inputDiag.selectedCount}`);
     setTxt(

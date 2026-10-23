@@ -10,13 +10,18 @@ export type InteractionMode = 'select' | 'pan' | 'attackMove';
  */
 const BOX_SELECT_MIN_PX = 56;
 const PAN_SLOP_PX = 8;
-const PAN_TAP_MAX_PX = 14;
+
+type Contact = { x: number; y: number; source: 'touch' | 'pointerTouch' | 'pointer' };
 
 export interface InputDiagnostics {
   pointerDown: number;
   pointerUp: number;
   pointerCancel: number;
   touchEndFallback: number;
+  touchStart: number;
+  touchEnd: number;
+  touchCancel: number;
+  lastGesture: string;
   mode: InteractionMode;
   selectedCount: number;
   lastHitX: number | null;
@@ -32,9 +37,11 @@ export interface InputDiagnostics {
 
 export class InputController3D {
   public mode: InteractionMode = 'select';
-  private activePointers = new Map<number, { x: number; y: number }>();
-  private endedPointers = new Set<number>();
-  private primaryPointerId: number | null = null;
+  // Touch.identifier and PointerEvent.pointerId are *not* the same namespace.
+  // Safari fires both event streams; TouchEvents own the gesture once observed.
+  private contacts = new Map<string, Contact>();
+  private primaryContact: string | null = null;
+  private touchStreamActive = false;
   private startX = 0;
   private startY = 0;
   private currX = 0;
@@ -50,6 +57,10 @@ export class InputController3D {
   private pointerUpCount = 0;
   private pointerCancelCount = 0;
   private touchEndFallbackCount = 0;
+  private touchStartCount = 0;
+  private touchEndCount = 0;
+  private touchCancelCount = 0;
+  private lastGesture = 'none';
   private moveOrdersIssued = 0;
   private lastMoveCount = 0;
   private lastHitX: number | null = null;
@@ -76,6 +87,10 @@ export class InputController3D {
       pointerUp: this.pointerUpCount,
       pointerCancel: this.pointerCancelCount,
       touchEndFallback: this.touchEndFallbackCount,
+      touchStart: this.touchStartCount,
+      touchEnd: this.touchEndCount,
+      touchCancel: this.touchCancelCount,
+      lastGesture: this.lastGesture,
       mode: this.mode,
       selectedCount,
       lastHitX: this.lastHitX,
@@ -110,29 +125,83 @@ export class InputController3D {
       { passive: false }
     );
 
-    // iOS Safari takes over a touch unless touchmove is cancelled, then fires
-    // pointercancel and swallows pointerup. These listeners do not issue orders.
-    this.domElement.addEventListener('touchstart', (e) => this.onTouchGuard(e), { passive: false });
-    this.domElement.addEventListener('touchmove', (e) => this.onTouchGuard(e), { passive: false });
-    this.domElement.addEventListener('touchend', (e) => this.onTouchFallback(e, false), { passive: false });
-    this.domElement.addEventListener('touchcancel', (e) => this.onTouchFallback(e, true), { passive: false });
+    // TouchEvents are authoritative for fingers, including when Safari drops
+    // pointerup/pointercancel. Never join them by their unrelated numeric ids.
+    this.domElement.addEventListener('touchstart', (e) => this.onTouchStart(e), { passive: false });
+    this.domElement.addEventListener('touchmove', (e) => this.onTouchMove(e), { passive: false });
+    this.domElement.addEventListener('touchend', (e) => this.onTouchEnd(e, false), { passive: false });
+    this.domElement.addEventListener('touchcancel', (e) => this.onTouchEnd(e, true), { passive: false });
   }
 
-  private onTouchGuard(e: TouchEvent): void {
+  private preventTouchBrowserGesture(e: TouchEvent): void {
     if (e.cancelable) e.preventDefault();
   }
 
-  private onTouchFallback(e: TouchEvent, isCancel: boolean): void {
-    if (e.cancelable) e.preventDefault();
-    const changed = e.changedTouches;
-    if (!changed) return;
-    for (let i = 0; i < changed.length; i++) {
-      const t = changed.item(i);
-      if (!t) continue;
-      if (this.endedPointers.has(t.identifier)) continue;
-      if (!this.activePointers.has(t.identifier) && this.primaryPointerId !== t.identifier) continue;
-      this.finishPointer(t.identifier, t.clientX, t.clientY, isCancel, true);
+  private onTouchStart(e: TouchEvent): void {
+    this.preventTouchBrowserGesture(e);
+    this.touchStartCount++;
+    if (!this.touchStreamActive) {
+      // A pointerdown may precede touchstart. Abandon its provisional contact
+      // without dispatching a command; the Touch stream will complete it.
+      this.resetGesture();
+      this.touchStreamActive = true;
     }
+    for (const touch of Array.from(e.changedTouches)) {
+      this.beginContact(`t:${touch.identifier}`, touch.clientX, touch.clientY, 'touch');
+    }
+  }
+
+  private onTouchMove(e: TouchEvent): void {
+    this.preventTouchBrowserGesture(e);
+    if (!this.touchStreamActive) return;
+    // Update both fingers before calculating pinch; no phantom intermediate pan.
+    for (const touch of Array.from(e.touches)) {
+      const key = `t:${touch.identifier}`;
+      if (this.contacts.has(key)) {
+        this.contacts.set(key, { x: touch.clientX, y: touch.clientY, source: 'touch' });
+      }
+    }
+    const primary = this.primaryContact;
+    if (this.contacts.size >= 2) this.applyGestureMove('');
+    else if (primary) this.applyGestureMove(primary);
+  }
+
+  private onTouchEnd(e: TouchEvent, isCancel: boolean): void {
+    this.preventTouchBrowserGesture(e);
+    if (isCancel) this.touchCancelCount++;
+    else this.touchEndCount++;
+
+    if (this.touchStreamActive) {
+      for (const touch of Array.from(e.changedTouches)) {
+        this.finishContact(`t:${touch.identifier}`, touch.clientX, touch.clientY, isCancel);
+      }
+      if (e.touches.length === 0) {
+        this.touchStreamActive = false;
+        // A malformed touch sequence must never leave a phantom active finger.
+        if (this.contacts.size > 0) this.resetGesture();
+      }
+      return;
+    }
+
+    // Defensive recovery for devices that emit pointerdown and touchend without
+    // touchstart. Match the ONE provisional finger by source, not by id number.
+    const pending = [...this.contacts.entries()].filter(([, c]) => c.source === 'pointerTouch');
+    if (pending.length === 1 && e.changedTouches.length === 1) {
+      const [key] = pending[0];
+      const touch = e.changedTouches[0];
+      this.touchEndFallbackCount++;
+      this.finishContact(key, touch.clientX, touch.clientY, isCancel);
+    }
+  }
+
+  private resetGesture(): void {
+    for (const key of this.contacts.keys()) {
+      if (key.startsWith('p:')) this.tryRelease(Number(key.slice(2)));
+    }
+    this.contacts.clear();
+    this.primaryContact = null;
+    this.isDragging = false;
+    this.hideSelectionBox();
   }
 
   private tryCapture(pointerId: number): void {
@@ -163,6 +232,7 @@ export class InputController3D {
 
   private onPointerDown(e: PointerEvent): void {
     this.pointerDownCount++;
+    if (e.pointerType === 'touch' && this.touchStreamActive) return;
     if (e.button === 2) {
       const ground = this.scene3d.screenToGroundWorld(e.clientX, e.clientY);
       if (ground) {
@@ -183,17 +253,24 @@ export class InputController3D {
     }
 
     if (e.cancelable) e.preventDefault();
-    if (this.activePointers.size === 0) this.endedPointers.clear();
-
-    this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     this.tryCapture(e.pointerId);
+    this.beginContact(
+      `p:${e.pointerId}`,
+      e.clientX,
+      e.clientY,
+      e.pointerType === 'touch' ? 'pointerTouch' : 'pointer'
+    );
+  }
 
-    if (this.activePointers.size >= 2) {
-      this.primaryPointerId = null;
+  private beginContact(key: string, x: number, y: number, source: Contact['source']): void {
+    if (this.contacts.has(key)) return;
+    this.contacts.set(key, { x, y, source });
+    if (this.contacts.size >= 2) {
+      this.primaryContact = null;
       this.isDragging = false;
       this.hideSelectionBox();
       this.multiTouchGuardUntil = performance.now() + 280;
-      const pts = Array.from(this.activePointers.values());
+      const pts = Array.from(this.contacts.values());
       this.prevPinchDist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
       this.prevPinchMidX = (pts[0].x + pts[1].x) * 0.5;
       this.prevPinchMidY = (pts[0].y + pts[1].y) * 0.5;
@@ -203,23 +280,28 @@ export class InputController3D {
 
     if (performance.now() < this.multiTouchGuardUntil) return;
 
-    this.primaryPointerId = e.pointerId;
-    this.startX = e.clientX;
-    this.startY = e.clientY;
-    this.currX = e.clientX;
-    this.currY = e.clientY;
+    this.primaryContact = key;
+    this.startX = x;
+    this.startY = y;
+    this.currX = x;
+    this.currY = y;
     this.sawMove = false;
     this.isDragging = false;
   }
 
   private onPointerMove(e: PointerEvent): void {
-    if (this.activePointers.has(e.pointerId)) {
-      this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    }
+    if (e.pointerType === 'touch' && this.touchStreamActive) return;
+    const key = `p:${e.pointerId}`;
+    const contact = this.contacts.get(key);
+    if (!contact) return;
+    this.contacts.set(key, { ...contact, x: e.clientX, y: e.clientY });
+    this.applyGestureMove(key);
+  }
 
-    if (this.activePointers.size >= 2) {
+  private applyGestureMove(key: string): void {
+    if (this.contacts.size >= 2) {
       this.multiTouchGuardUntil = performance.now() + 280;
-      const pts = Array.from(this.activePointers.values());
+      const pts = Array.from(this.contacts.values());
       const newDist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
       const newMidX = (pts[0].x + pts[1].x) * 0.5;
       const newMidY = (pts[0].y + pts[1].y) * 0.5;
@@ -250,12 +332,14 @@ export class InputController3D {
       return;
     }
 
-    if (this.primaryPointerId === null || e.pointerId !== this.primaryPointerId) return;
+    if (this.primaryContact === null || key !== this.primaryContact) return;
+    const current = this.contacts.get(key);
+    if (!current) return;
 
-    const dx = e.clientX - this.currX;
-    const dy = e.clientY - this.currY;
-    this.currX = e.clientX;
-    this.currY = e.clientY;
+    const dx = current.x - this.currX;
+    const dy = current.y - this.currY;
+    this.currX = current.x;
+    this.currY = current.y;
     this.sawMove = true;
 
     const totalDist = Math.hypot(this.currX - this.startX, this.currY - this.startY);
@@ -275,42 +359,35 @@ export class InputController3D {
   }
 
   private onPointerEnd(e: PointerEvent, isCancel: boolean): void {
-    this.finishPointer(e.pointerId, e.clientX, e.clientY, isCancel, false);
+    if (e.pointerType === 'touch' && this.touchStreamActive) return;
+    const key = `p:${e.pointerId}`;
+    if (!this.contacts.has(key)) return;
+    if (isCancel) this.pointerCancelCount++;
+    else this.pointerUpCount++;
+    this.finishContact(key, e.clientX, e.clientY, isCancel);
   }
 
-  private finishPointer(
-    pointerId: number,
-    clientX: number,
-    clientY: number,
-    isCancel: boolean,
-    fromTouchFallback: boolean
-  ): void {
-    if (this.endedPointers.has(pointerId)) return;
-    const wasTracked = this.activePointers.has(pointerId) || this.primaryPointerId === pointerId;
-    if (!wasTracked) return;
+  private finishContact(key: string, clientX: number, clientY: number, isCancel: boolean): void {
+    if (!this.contacts.has(key)) return;
+    this.contacts.delete(key);
+    if (key.startsWith('p:')) this.tryRelease(Number(key.slice(2)));
 
-    if (fromTouchFallback) this.touchEndFallbackCount++;
-    else if (isCancel) this.pointerCancelCount++;
-    else this.pointerUpCount++;
-
-    this.activePointers.delete(pointerId);
-    this.tryRelease(pointerId);
-    this.endedPointers.add(pointerId);
-
-    if (this.activePointers.size > 0) {
-      this.primaryPointerId = null;
+    if (this.contacts.size > 0) {
+      this.primaryContact = null;
       this.isDragging = false;
       this.hideSelectionBox();
       this.multiTouchGuardUntil = performance.now() + 280;
+      this.lastGesture = 'multi-contact-end';
       return;
     }
 
-    if (this.primaryPointerId === null || pointerId !== this.primaryPointerId) return;
-    this.primaryPointerId = null;
+    if (this.primaryContact === null || key !== this.primaryContact) return;
+    this.primaryContact = null;
 
     if (performance.now() < this.multiTouchGuardUntil) {
       this.isDragging = false;
       this.hideSelectionBox();
+      this.lastGesture = 'multi-contact-suppressed';
       return;
     }
 
@@ -331,15 +408,18 @@ export class InputController3D {
     if (isCancel && totalDist >= BOX_SELECT_MIN_PX) {
       this.isDragging = false;
       this.hideSelectionBox();
+      this.lastGesture = 'cancelled-drag';
       return;
     }
 
     if (this.mode === 'pan') {
-      if (totalDist <= PAN_TAP_MAX_PX) this.handleSingleTap(this.currX, this.currY);
+      // Pan mode owns ALL one-finger gestures, even a stationary tap.
+      this.lastGesture = 'pan-only';
     } else if (this.mode === 'select' && totalDist >= BOX_SELECT_MIN_PX) {
-      this.performBoxSelection();
+      this.lastGesture = this.performBoxSelection();
     } else {
       this.handleSingleTap(this.currX, this.currY);
+      this.lastGesture = `${key.startsWith('t:') ? 'touch' : 'pointer'}-${isCancel ? 'cancel-tap' : 'tap'}`;
     }
 
     this.isDragging = false;
@@ -363,13 +443,16 @@ export class InputController3D {
     this.selectionBoxEl.style.display = 'none';
   }
 
-  private performBoxSelection(): void {
+  private performBoxSelection(): string {
     const rect = this.domElement.getBoundingClientRect();
     const minX = Math.min(this.startX, this.currX) - rect.left;
     const maxX = Math.max(this.startX, this.currX) - rect.left;
     const minY = Math.min(this.startY, this.currY) - rect.top;
     const maxY = Math.max(this.startY, this.currY) - rect.top;
 
+    const priorSelection = new Set(
+      this.core.state.units.filter((u) => u.team === 'player' && u.hp > 0 && u.selected).map((u) => u.id)
+    );
     let count = 0;
     for (const u of this.core.state.units) {
       if (u.team !== 'player' || u.hp <= 0) {
@@ -381,7 +464,21 @@ export class InputController3D {
       u.selected = inside;
       if (inside) count++;
     }
-    this.onStatusUpdate(count > 0 ? `Selected ${count} friendly units` : 'Cleared selection');
+    if (count > 0) {
+      this.onStatusUpdate(`Selected ${count} friendly units`);
+      return 'box-select';
+    }
+
+    if (priorSelection.size > 0) {
+      // On glass, a long finger slide to the destination should not erase the
+      // user's army just because the selection rectangle covered empty ground.
+      for (const u of this.core.state.units) u.selected = priorSelection.has(u.id);
+      this.handleSingleTap(this.currX, this.currY);
+      return 'drag-move';
+    }
+
+    this.onStatusUpdate('No friendly units in selection area');
+    return 'empty-box';
   }
 
   private pickFriendlyUnitAt(gx: number, gy: number): SimUnit | null {

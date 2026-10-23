@@ -497,7 +497,8 @@ export async function runTouchGameplay(cdp, evalExpr, screenshotsDir) {
     let used = 'none';
     let touchClient = null;
     try {
-      const t = new Touch({ identifier: 3, target: canvas, clientX: x, clientY: y });
+      // Deliberately DIFFERENT from pointerId 3. Safari assigns these independently.
+      const t = new Touch({ identifier: 703, target: canvas, clientX: x, clientY: y });
       const ev = new TouchEvent('touchend', { bubbles: true, cancelable: true, changedTouches: [t] });
       touchClient = ev.changedTouches && ev.changedTouches[0] ? { x: ev.changedTouches[0].clientX, y: ev.changedTouches[0].clientY } : null;
       canvas.dispatchEvent(ev);
@@ -518,8 +519,62 @@ export async function runTouchGameplay(cdp, evalExpr, screenshotsDir) {
     };
   })()`);
 
+  const independentTouchIds = await evalExpr(`(() => {
+    const app = window.STARFRONT_3D;
+    app.inputCtrl.mode = 'select';
+    app.core.state.running = true;
+    app.core.state.paused = false;
+    for (const u of app.core.state.units) {
+      if (u.team === 'player' && u.hp > 0) { u.selected = true; u.state = 'idle'; u.targetEntity = null; }
+    }
+    const canvas = document.getElementById('battlefieldCanvas3D');
+    const rect = canvas.getBoundingClientRect();
+    const dest = { x: 560, y: 280 };
+    const elev = app.core.getTerrainHeightAt(dest.x, dest.y);
+    const scr = app.scene3d.worldToScreen(dest.x, elev, dest.y);
+    const x = rect.left + scr.x;
+    const y = rect.top + scr.y;
+    const before = app.inputCtrl.getDiagnostics();
+    const makeTouch = (tx, ty) => new Touch({ identifier: 917, target: canvas, clientX: tx, clientY: ty });
+    const fire = (name, contact, remaining) => canvas.dispatchEvent(new TouchEvent(name, {
+      bubbles: true, cancelable: true, changedTouches: [contact], touches: remaining, targetTouches: remaining
+    }));
+
+    // Pointer ID 42 is provisional; touchstart ID 917 takes ownership.
+    canvas.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 42, pointerType: 'touch', button: 0, buttons: 1, clientX: x, clientY: y, bubbles: true, cancelable: true }));
+    const t0 = makeTouch(x, y);
+    fire('touchstart', t0, [t0]);
+    canvas.dispatchEvent(new PointerEvent('pointercancel', { pointerId: 42, pointerType: 'touch', clientX: x, clientY: y, bubbles: true }));
+    const t1 = makeTouch(x + 22, y + 8);
+    fire('touchmove', t1, [t1]);
+    fire('touchend', t1, []);
+    const after = app.inputCtrl.getDiagnostics();
+    return {
+      selected: after.selectedCount,
+      moving: app.core.state.units.filter(u => u.team === 'player' && u.hp > 0 && u.state === 'move').length,
+      orderDelta: after.moveOrdersIssued - before.moveOrdersIssued,
+      touchDelta: after.touchEnd - before.touchEnd,
+      lastGesture: after.lastGesture
+    };
+  })()`);
+
+  const panTapNoOrder = await evalExpr(`(() => {
+    const app = window.STARFRONT_3D;
+    app.inputCtrl.mode = 'pan';
+    const canvas = document.getElementById('battlefieldCanvas3D');
+    const r = canvas.getBoundingClientRect();
+    const x = r.left + r.width * 0.55;
+    const y = r.top + r.height * 0.5;
+    const before = app.inputCtrl.getDiagnostics().moveOrdersIssued;
+    const t = new Touch({ identifier: 921, target: canvas, clientX: x, clientY: y });
+    canvas.dispatchEvent(new TouchEvent('touchstart', { bubbles: true, cancelable: true, changedTouches: [t], touches: [t], targetTouches: [t] }));
+    canvas.dispatchEvent(new TouchEvent('touchend', { bubbles: true, cancelable: true, changedTouches: [t], touches: [], targetTouches: [] }));
+    const after = app.inputCtrl.getDiagnostics();
+    return { orderDelta: after.moveOrdersIssued - before, lastGesture: after.lastGesture };
+  })()`);
+
   await settlePlayers();
   await evalExpr(`(() => { window.STARFRONT_3D.inputCtrl.mode = 'select'; return true; })()`);
 
-  return { test1, test2, test3, test4, test5, test6, test7, pointerCancelTap, lostPointerUp };
+  return { test1, test2, test3, test4, test5, test6, test7, pointerCancelTap, lostPointerUp, independentTouchIds, panTapNoOrder };
 }
