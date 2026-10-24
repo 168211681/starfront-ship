@@ -754,6 +754,8 @@ runHudSafe('bindHudControls', () => {
     setStatusMessage('Camera reset to default 45° tactical view');
   });
 
+  const initialPresetButton = document.getElementById('btnQualityPreset');
+  if (initialPresetButton) initialPresetButton.textContent = PRESET_SHORT[scene3d.getQualityPreset()];
   document.getElementById('btnQualityPreset')?.addEventListener('click', () => {
     const order: QualityPreset[] = ['eco', 'balanced', 'quality'];
     const next = order[(order.indexOf(scene3d.getQualityPreset()) + 1) % order.length];
