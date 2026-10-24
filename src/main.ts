@@ -158,6 +158,11 @@ export interface PerSecondTelemetrySample {
   browserFrameTimeAvgMs: number;
   browserFrameTimeP95Ms: number;
   cpuRenderCallAvgMs: number;
+  /** CPU timing split; averages updated each frame, excludes GPU execution. */
+  cpuSimulationAvgMs: number;
+  cpuSceneSyncAvgMs: number;
+  cpuGameFrameAvgMs: number;
+  simulationStepsAvgPerFrame: number;
   drawCalls: number;
   instancedDrawCalls: number;
   renderedTriangles: number;
@@ -267,6 +272,14 @@ let recordingStartPerfMs = 0;
 let lastSamplePerfMs = 0;
 let recordedSamples: PerSecondTelemetrySample[] = [];
 let diagHudVisible = false;
+let avgSimulationMs = 0;
+let avgSceneSyncMs = 0;
+let avgGameFrameMs = 0;
+let avgSimulationSteps = 0;
+
+function smoothFrameCost(previous: number, current: number): number {
+  return previous === 0 ? current : previous * 0.9 + current * 0.1;
+}
 
 const MAX_TELEMETRY_EVENTS = 240;
 const sessionEvents: TelemetrySessionEvent[] = [];
@@ -415,6 +428,10 @@ function buildCurrentTelemetrySample(nowPerfMs: number): PerSecondTelemetrySampl
     browserFrameTimeAvgMs: fm.frameTimeAvgMs,
     browserFrameTimeP95Ms: fm.frameTimeP95Ms,
     cpuRenderCallAvgMs: rt.avgFrameRenderMs,
+    cpuSimulationAvgMs: Number(avgSimulationMs.toFixed(3)),
+    cpuSceneSyncAvgMs: Number(avgSceneSyncMs.toFixed(3)),
+    cpuGameFrameAvgMs: Number(avgGameFrameMs.toFixed(3)),
+    simulationStepsAvgPerFrame: Number(avgSimulationSteps.toFixed(2)),
     drawCalls: rt.drawCalls,
     instancedDrawCalls: rt.instancedDrawCalls,
     renderedTriangles: rt.triangles,
@@ -859,9 +876,17 @@ function animate(now: number): void {
 
   recordFrameDelta(dtMs);
 
-  const { alpha } = core.stepSimulation(elapsed);
+  const frameWorkStart = performance.now();
+  const { steps, alpha } = core.stepSimulation(elapsed);
+  const afterSimulation = performance.now();
   scene3d.syncFromGameCore(alpha);
+  const afterSceneSync = performance.now();
   scene3d.render();
+  const afterRender = performance.now();
+  avgSimulationMs = smoothFrameCost(avgSimulationMs, afterSimulation - frameWorkStart);
+  avgSceneSyncMs = smoothFrameCost(avgSceneSyncMs, afterSceneSync - afterSimulation);
+  avgGameFrameMs = smoothFrameCost(avgGameFrameMs, afterRender - frameWorkStart);
+  avgSimulationSteps = smoothFrameCost(avgSimulationSteps, steps);
 
   if (isRecordingTelemetry && now - lastSamplePerfMs >= 1000) {
     lastSamplePerfMs = now;
