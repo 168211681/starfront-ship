@@ -86,11 +86,17 @@ export class BattlefieldScene3D {
   // needsUpdate. Keep one dirty flag per batch rather than per instance.
   private readonly dirtyInstanceMatrices = new Set<THREE.InstancedMesh>();
   private readonly dirtyInstanceColors = new Set<THREE.InstancedMesh>();
+  // Remember which slots have actually been uploaded. An unchanged building,
+  // health bar or parked unit must not re-upload its entire instance buffer.
+  private readonly initializedInstanceMatrices = new WeakMap<THREE.InstancedMesh, Set<number>>();
+  private readonly initializedInstanceColors = new WeakMap<THREE.InstancedMesh, Set<number>>();
 
   // Measured Renderer & Context Telemetry (Phase 2 & Phase 3)
   public lastFrameRenderMs = 0;
   public avgFrameRenderMs = 0;
   public contextLossCount = 0;
+  /** Counts instanced objects actually submitted by the renderer during the latest frame. */
+  private instancedDrawsThisFrame = 0;
 
   constructor(private readonly container: HTMLElement, private readonly core: GameCore) {
     this.adapter = new WorldAdapter(1.0);
@@ -138,7 +144,8 @@ export class BattlefieldScene3D {
     this.setupLighting();
     this.buildStaticBattlefield();
     this.initDynamicInstancedBatches();
-    this.setQualityPreset('balanced');
+    const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
+    this.setQualityPreset(isIOS ? 'eco' : 'balanced');
     this.handleResize();
     this.updateCameraTransform();
   }
@@ -185,12 +192,45 @@ export class BattlefieldScene3D {
     this.tempQuat.setFromEuler(this.tempRot);
     this.tempScale.set(sx, sy, sz);
     this.tempMatrix.compose(this.tempPos, this.tempQuat, this.tempScale);
-    mesh.setMatrixAt(idx, this.tempMatrix);
-    this.dirtyInstanceMatrices.add(mesh);
+    let matrixSlots = this.initializedInstanceMatrices.get(mesh);
+    if (!matrixSlots) {
+      matrixSlots = new Set<number>();
+      this.initializedInstanceMatrices.set(mesh, matrixSlots);
+    }
+    const matrixArray = mesh.instanceMatrix.array;
+    const matrixOffset = idx * 16;
+    let matrixChanged = !matrixSlots.has(idx);
+    if (!matrixChanged) {
+      for (let i = 0; i < 16; i++) {
+        if (matrixArray[matrixOffset + i] !== Math.fround(this.tempMatrix.elements[i])) {
+          matrixChanged = true;
+          break;
+        }
+      }
+    }
+    if (matrixChanged) {
+      mesh.setMatrixAt(idx, this.tempMatrix);
+      matrixSlots.add(idx);
+      this.dirtyInstanceMatrices.add(mesh);
+    }
     if (colorHex !== undefined) {
       this.tempColor.set(colorHex);
-      mesh.setColorAt(idx, this.tempColor);
-      this.dirtyInstanceColors.add(mesh);
+      let colorSlots = this.initializedInstanceColors.get(mesh);
+      if (!colorSlots) {
+        colorSlots = new Set<number>();
+        this.initializedInstanceColors.set(mesh, colorSlots);
+      }
+      const attr = mesh.instanceColor;
+      const offset = idx * 3;
+      const colorChanged = !colorSlots.has(idx) || !attr ||
+        attr.array[offset] !== Math.fround(this.tempColor.r) ||
+        attr.array[offset + 1] !== Math.fround(this.tempColor.g) ||
+        attr.array[offset + 2] !== Math.fround(this.tempColor.b);
+      if (colorChanged) {
+        mesh.setColorAt(idx, this.tempColor);
+        colorSlots.add(idx);
+        this.dirtyInstanceColors.add(mesh);
+      }
     }
   }
 
@@ -213,6 +253,10 @@ export class BattlefieldScene3D {
     inst.visible = true;
     inst.castShadow = castShadow;
     inst.receiveShadow = castShadow;
+    // onBeforeRender is called only for submitted render objects, unlike counting all active batches.
+    inst.onBeforeRender = () => {
+      if (inst.count > 0) this.instancedDrawsThisFrame += 1;
+    };
     this.scene.add(inst);
     return inst;
   }
@@ -919,6 +963,7 @@ export class BattlefieldScene3D {
   }
 
   public render(): void {
+    this.instancedDrawsThisFrame = 0;
     const t0 = typeof performance !== 'undefined' ? performance.now() : Date.now();
     this.flushDirtyInstanceBuffers();
     this.renderer.render(this.scene, this.camera);
@@ -978,7 +1023,7 @@ export class BattlefieldScene3D {
     return {
       frame: info?.render?.frame ?? 0,
       calls: info?.render?.calls ?? 0,
-      instancedCalls: info?.render?.instancedCalls ?? meshCounts.activeInstancedMeshes,
+      instancedCalls: this.instancedDrawsThisFrame,
       activeInstances: info?.render?.activeInstances ?? meshCounts.totalActiveInstances,
       activeInstancedMeshes: meshCounts.activeInstancedMeshes,
       visibleInstancedMeshes: meshCounts.visibleInstancedMeshes,

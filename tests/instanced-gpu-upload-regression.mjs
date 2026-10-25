@@ -31,6 +31,8 @@ const { BattlefieldScene3D } = await import(stubUrl(compiled));
 const renderer = Object.create(BattlefieldScene3D.prototype);
 renderer.dirtyInstanceMatrices = new Set();
 renderer.dirtyInstanceColors = new Set();
+renderer.initializedInstanceMatrices = new WeakMap();
+renderer.initializedInstanceColors = new WeakMap();
 renderer.tempMatrix = new THREE.Matrix4();
 renderer.tempPos = new THREE.Vector3();
 renderer.tempRot = new THREE.Euler();
@@ -54,15 +56,49 @@ assert.equal(gpuFrameCount, 1);
 assert.equal(batch.instanceMatrix.version, 1, 'mark each dirty matrix batch for GPU upload');
 assert.equal(batch.instanceColor.version, 1, 'mark each dirty color batch for GPU upload');
 
+renderer.setInstTransform(batch, 0, 100, 5, 150, 0, 0, 0, 1, 1, 1, 0x0088ff);
+renderer.setInstTransform(batch, 1, 120, 5, 150, 0, 0, 0, 1, 1, 1, 0x0088ff);
 renderer.render();
-assert.equal(batch.instanceMatrix.version, 1, 'clean batches must not be uploaded again');
-assert.equal(batch.instanceColor.version, 1);
+assert.equal(batch.instanceMatrix.version, 1, 'unchanged transforms must not re-upload');
+assert.equal(batch.instanceColor.version, 1, 'unchanged colors must not re-upload');
 
 renderer.setInstTransform(batch, 0, 220, 5, 150, 0, 0, 0, 1, 1, 1);
 renderer.render();
 assert.equal(batch.instanceMatrix.version, 2, 'a moving unit triggers another GPU upload');
 assert.equal(batch.instanceColor.version, 1, 'unchanged colors do not trigger uploads');
+renderer.setInstTransform(batch, 0, 220, 5, 150, 0, 0, 0, 1, 1, 1, 0xff8800);
+renderer.render();
+assert.equal(batch.instanceMatrix.version, 2, 'color-only change must not upload matrices');
+assert.equal(batch.instanceColor.version, 2, 'a new faction color must upload');
 const matrix = new THREE.Matrix4();
 batch.getMatrixAt(0, matrix);
 assert.equal(matrix.elements[12], 220, 'rendered instance matrix reflects the latest world x');
 console.log('PASS: instanced GPU upload (real renderer method, dirty matrix/color versions, batched once per frame)');
+
+// Diagnostic accounting: count only actual InstancedMesh render submissions,
+// not all active mesh batches; reset per frame to avoid stale counts.
+renderer.scene = new THREE.Scene();
+renderer.factory = {
+  getGeo: () => new THREE.BoxGeometry(),
+  getCommonMat: () => new THREE.MeshBasicMaterial()
+};
+renderer.instancedDrawsThisFrame = 0;
+const observed = renderer.createBatch('box', 'basic', 2);
+observed.count = 1;
+let submitted = 0;
+renderer.renderer = {
+  render: () => { submitted++; observed.onBeforeRender(); },
+  info: { render: { frame: 1, calls: 2, triangles: 12, lines: 0 }, memory: { geometries: 1 } }
+};
+renderer.render();
+assert.equal(submitted, 1);
+assert.equal(renderer.getRenderStats().instancedCalls, 1, 'only rendered InstancedMesh submitted');
+assert.equal(renderer.getRenderTelemetry().instancedDrawCalls, 1);
+assert.ok(renderer.getRenderTelemetry().instancedDrawCalls <= renderer.getRenderTelemetry().drawCalls);
+renderer.renderer.render = () => { submitted++; };
+renderer.render();
+assert.equal(renderer.getRenderStats().instancedCalls, 0, 'zero submissions on next frame, no stale count');
+const mainSource = readFileSync(path.join(base, 'src/main.ts'), 'utf8');
+assert.ok(mainSource.includes("input: ReturnType<InputController3D['getDiagnostics']>"));
+assert.ok(mainSource.includes('input: inputCtrl.getDiagnostics()'), 'gesture counters serialized into per-second samples');
+console.log('PASS: rendered-instance accounting and exported physical input snapshots');

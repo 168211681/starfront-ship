@@ -457,16 +457,23 @@ export async function runTouchGameplay(cdp, evalExpr, screenshotsDir) {
     app.core.state.tacticalPause = false;
     app.core.state.paused = false;
     app.core.state.running = true;
+    // Park selected friendlies away from the tap location. Otherwise a valid
+    // pointer-cancel tap can select a friendly unit instead of issuing a move.
+    let parked = 0;
     for (const u of app.core.state.units) {
-      if (u.team === 'player' && u.hp > 0) { u.selected = true; u.state = 'idle'; u.targetEntity = null; }
+      if (u.team === 'player' && u.hp > 0) {
+        u.selected = true; u.state = 'idle'; u.targetEntity = null;
+        u.x = 150 + (parked % 5) * 18; u.y = 700;
+        u.prevX = u.x; u.prevY = u.y; parked++;
+      }
     }
+    app.scene3d.syncFromGameCore(1);
+    app.scene3d.render();
     const canvas = document.getElementById('battlefieldCanvas3D');
     const rect = canvas.getBoundingClientRect();
-    const dest = { x: 530, y: 310 };
-    const elev = app.core.getTerrainHeightAt(dest.x, dest.y);
-    const scr = app.scene3d.worldToScreen(dest.x, elev, dest.y);
-    const x = rect.left + scr.x;
-    const y = rect.top + scr.y;
+    // The known, unobstructed screen-space target is also exercised by lostPointerUp.
+    const x = rect.left + rect.width * 0.58;
+    const y = rect.top + rect.height * 0.42;
     const before = app.inputCtrl.getDiagnostics().pointerCancel;
     canvas.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 42, pointerType: 'touch', button: 0, buttons: 1, clientX: x, clientY: y, bubbles: true, cancelable: true }));
     const cancelEv = new PointerEvent('pointercancel', { pointerId: 42, pointerType: 'touch', button: 0, buttons: 0, clientX: x, clientY: y, bubbles: true, cancelable: false });
