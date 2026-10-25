@@ -95,6 +95,8 @@ export class BattlefieldScene3D {
   public lastFrameRenderMs = 0;
   public avgFrameRenderMs = 0;
   public contextLossCount = 0;
+  /** Counts instanced objects actually submitted by the renderer during the latest frame. */
+  private instancedDrawsThisFrame = 0;
 
   constructor(private readonly container: HTMLElement, private readonly core: GameCore) {
     this.adapter = new WorldAdapter(1.0);
@@ -251,6 +253,10 @@ export class BattlefieldScene3D {
     inst.visible = true;
     inst.castShadow = castShadow;
     inst.receiveShadow = castShadow;
+    // onBeforeRender is called only for submitted render objects, unlike counting all active batches.
+    inst.onBeforeRender = () => {
+      if (inst.count > 0) this.instancedDrawsThisFrame += 1;
+    };
     this.scene.add(inst);
     return inst;
   }
@@ -957,6 +963,7 @@ export class BattlefieldScene3D {
   }
 
   public render(): void {
+    this.instancedDrawsThisFrame = 0;
     const t0 = typeof performance !== 'undefined' ? performance.now() : Date.now();
     this.flushDirtyInstanceBuffers();
     this.renderer.render(this.scene, this.camera);
@@ -1016,7 +1023,7 @@ export class BattlefieldScene3D {
     return {
       frame: info?.render?.frame ?? 0,
       calls: info?.render?.calls ?? 0,
-      instancedCalls: info?.render?.instancedCalls ?? meshCounts.activeInstancedMeshes,
+      instancedCalls: this.instancedDrawsThisFrame,
       activeInstances: info?.render?.activeInstances ?? meshCounts.totalActiveInstances,
       activeInstancedMeshes: meshCounts.activeInstancedMeshes,
       visibleInstancedMeshes: meshCounts.visibleInstancedMeshes,

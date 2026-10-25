@@ -180,6 +180,8 @@ export interface PerSecondTelemetrySample {
   drawingBufferWidth: number;
   drawingBufferHeight: number;
   orientation: 'portrait' | 'landscape';
+  /** Snapshot of physical input diagnostic counters for reproducible Safari gesture QA. */
+  input: ReturnType<InputController3D['getDiagnostics']>;
 }
 
 export interface DeviceMetrics {
@@ -448,7 +450,8 @@ function buildCurrentTelemetrySample(nowPerfMs: number): PerSecondTelemetrySampl
     viewportCssHeight: cssH,
     drawingBufferWidth: bufW,
     drawingBufferHeight: bufH,
-    orientation: cssW >= cssH ? 'landscape' : 'portrait'
+    orientation: cssW >= cssH ? 'landscape' : 'portrait',
+    input: inputCtrl.getDiagnostics()
   };
 }
 

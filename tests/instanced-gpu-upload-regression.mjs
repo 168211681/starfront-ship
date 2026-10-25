@@ -74,3 +74,31 @@ const matrix = new THREE.Matrix4();
 batch.getMatrixAt(0, matrix);
 assert.equal(matrix.elements[12], 220, 'rendered instance matrix reflects the latest world x');
 console.log('PASS: instanced GPU upload (real renderer method, dirty matrix/color versions, batched once per frame)');
+
+// Diagnostic accounting: count only actual InstancedMesh render submissions,
+// not all active mesh batches; reset per frame to avoid stale counts.
+renderer.scene = new THREE.Scene();
+renderer.factory = {
+  getGeo: () => new THREE.BoxGeometry(),
+  getCommonMat: () => new THREE.MeshBasicMaterial()
+};
+renderer.instancedDrawsThisFrame = 0;
+const observed = renderer.createBatch('box', 'basic', 2);
+observed.count = 1;
+let submitted = 0;
+renderer.renderer = {
+  render: () => { submitted++; observed.onBeforeRender(); },
+  info: { render: { frame: 1, calls: 2, triangles: 12, lines: 0 }, memory: { geometries: 1 } }
+};
+renderer.render();
+assert.equal(submitted, 1);
+assert.equal(renderer.getRenderStats().instancedCalls, 1, 'only rendered InstancedMesh submitted');
+assert.equal(renderer.getRenderTelemetry().instancedDrawCalls, 1);
+assert.ok(renderer.getRenderTelemetry().instancedDrawCalls <= renderer.getRenderTelemetry().drawCalls);
+renderer.renderer.render = () => { submitted++; };
+renderer.render();
+assert.equal(renderer.getRenderStats().instancedCalls, 0, 'zero submissions on next frame, no stale count');
+const mainSource = readFileSync(path.join(base, 'src/main.ts'), 'utf8');
+assert.ok(mainSource.includes("input: ReturnType<InputController3D['getDiagnostics']>"));
+assert.ok(mainSource.includes('input: inputCtrl.getDiagnostics()'), 'gesture counters serialized into per-second samples');
+console.log('PASS: rendered-instance accounting and exported physical input snapshots');
